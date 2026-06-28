@@ -152,13 +152,19 @@ function NavSearchBox() {
   );
 }
 
+interface SteamProfile { name: string; avatar: string }
+
 export default function Nav() {
-  const [steamId, setSteamId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<SteamProfile | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
-      .then((d) => { if (d.loggedIn) setSteamId(d.steamId); })
+      .then((d: { loggedIn: boolean; steamName?: string; steamAvatar?: string }) => {
+        if (d.loggedIn) {
+          setProfile({ name: d.steamName ?? "Steam 유저", avatar: d.steamAvatar ?? "" });
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -196,9 +202,34 @@ export default function Nav() {
         }}>
           <Link href="/" style={{ fontSize: 14, fontWeight: 600, color: "#a3a8a4", textDecoration: "none" }}>핫딜</Link>
 
-          {steamId ? (
+          {profile ? (
             /* 로그인 상태 */
             <>
+              {/* 프로필 */}
+              <Link href="/wishlist" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: 8, overflow: "hidden", flexShrink: 0,
+                  background: "#1e2424", border: "1.5px solid rgba(67,194,130,.35)",
+                }}>
+                  {profile.avatar ? (
+                    <img
+                      src={profile.avatar}
+                      alt={profile.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#5fd39a" }}>
+                      {profile.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#e6ebe8", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {profile.name}
+                </span>
+              </Link>
+
+              {/* 찜목록 */}
               <Link
                 href="/wishlist"
                 style={{
@@ -224,7 +255,6 @@ export default function Nav() {
                     fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                   }}
                 >
-                  <SteamIcon />
                   로그아웃
                 </button>
               </form>

@@ -21,7 +21,6 @@ interface WishGame {
 }
 
 interface WishlistData {
-  steamId: string;
   games: WishGame[];
   total: number;
   matched: number;
@@ -118,9 +117,11 @@ export default function WishlistPage() {
             <div style={{ fontSize: 18, fontWeight: 700, color: "#e8705f", marginBottom: 8 }}>오류 발생</div>
             <div style={{ fontSize: 13, color: "#a3a8a4", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{error}</div>
             <div style={{ marginTop: 24, display: "flex", gap: 10, justifyContent: "center" }}>
-              <a href="/api/auth/logout" style={{ fontSize: 13, fontWeight: 600, color: "#8b8f8b", background: "#1a1d1a", border: "1px solid #272d2d", padding: "9px 20px", borderRadius: 9, textDecoration: "none" }}>
-                로그아웃 후 재시도
-              </a>
+              <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+                <button type="submit" style={{ fontSize: 13, fontWeight: 600, color: "#8b8f8b", background: "#1a1d1a", border: "1px solid #272d2d", padding: "9px 20px", borderRadius: 9, cursor: "pointer", fontFamily: "'Noto Sans KR',system-ui,sans-serif" }}>
+                  로그아웃 후 재시도
+                </button>
+              </form>
               <Link href="/" style={{ fontSize: 13, fontWeight: 600, color: "#cfd3d0", background: "#1e2222", border: "1px solid #272d2d", padding: "9px 20px", borderRadius: 9, textDecoration: "none" }}>
                 홈으로
               </Link>
@@ -157,16 +158,19 @@ export default function WishlistPage() {
               </p>
             )}
           </div>
-          <a
-            href="/api/auth/logout"
-            style={{
-              fontSize: 13, fontWeight: 600, color: "#8b8f8b",
-              background: "#1a1d1a", border: "1px solid #272d2d",
-              padding: "8px 16px", borderRadius: 9, textDecoration: "none",
-            }}
-          >
-            로그아웃
-          </a>
+          <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+            <button
+              type="submit"
+              style={{
+                fontSize: 13, fontWeight: 600, color: "#8b8f8b",
+                background: "#1a1d1a", border: "1px solid #272d2d",
+                padding: "8px 16px", borderRadius: 9, cursor: "pointer",
+                fontFamily: "'Noto Sans KR',system-ui,sans-serif",
+              }}
+            >
+              로그아웃
+            </button>
+          </form>
         </div>
 
         {/* 필터 탭 */}

@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySteamOpenId } from "@/lib/steam";
 
+async function fetchSteamProfile(steamId: string): Promise<{ name: string; avatar: string } | null> {
+  try {
+    const res = await fetch(
+      `https://steamcommunity.com/profiles/${steamId}/?xml=1`,
+      { headers: { Accept: "text/xml" } }
+    );
+    if (!res.ok) return null;
+    const xml = await res.text();
+    const nameMatch   = xml.match(/<steamID><!\[CDATA\[(.+?)\]\]><\/steamID>/);
+    const avatarMatch = xml.match(/<avatarFull><!\[CDATA\[(.+?)\]\]><\/avatarFull>/);
+    return {
+      name:   nameMatch?.[1]   ?? steamId,
+      avatar: avatarMatch?.[1] ?? "",
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
 
@@ -16,12 +35,22 @@ export async function GET(req: NextRequest) {
   }
 
   const res = NextResponse.redirect(new URL("/wishlist", req.url));
-  res.cookies.set("steam_id", steamId, {
+
+  const cookieOpts = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 7일
+    sameSite: "lax" as const,
+    maxAge: 60 * 60 * 24 * 7,
     path: "/",
-  });
+  };
+
+  res.cookies.set("steam_id", steamId, cookieOpts);
+
+  const profile = await fetchSteamProfile(steamId);
+  if (profile) {
+    res.cookies.set("steam_name",   profile.name,   cookieOpts);
+    res.cookies.set("steam_avatar", profile.avatar, cookieOpts);
+  }
+
   return res;
 }
