@@ -362,13 +362,8 @@ export default function HomePage() {
   const [rawDeals, setRawDeals] = useState<DealItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const endingItems = rawDeals
-    .filter((d) => d.deal.expiry)
-    .sort((a, b) => new Date(a.deal.expiry!).getTime() - new Date(b.deal.expiry!).getTime())
-    .slice(0, 4);
-
-  const endingFallback = rawDeals.slice(0, 4);
+  const [endingDeals, setEndingDeals] = useState<DealItem[]>([]);
+  const [endingLoading, setEndingLoading] = useState(true);
 
   useEffect(() => {
     const iv = setInterval(() => setTick((t) => t + 1), 1000);
@@ -392,7 +387,20 @@ export default function HomePage() {
       });
   }, []);
 
-  const showEnding = endingItems.length > 0 ? endingItems : endingFallback;
+  useEffect(() => {
+    fetch("/api/deals?limit=8&sort=expiry")
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok || data?.error) throw new Error();
+        return data as DealItem[];
+      })
+      .then((data) => {
+        const withExpiry = (Array.isArray(data) ? data : []).filter((d) => d.deal.expiry);
+        setEndingDeals(withExpiry.slice(0, 4));
+        setEndingLoading(false);
+      })
+      .catch(() => setEndingLoading(false));
+  }, []);
 
   return (
     <div>
@@ -469,36 +477,47 @@ export default function HomePage() {
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
-              {loading
+              {endingLoading
                 ? Array.from({ length: 4 }, (_, i) => <SkeletonEndingCard key={i} />)
-                : showEnding.map((e) => {
-                  const r = e.deal.expiry ? remainSec(e.deal.expiry) : 0;
-                  void tick;
-                  return (
-                    <Link key={e.id} href={`/game/${e.id}?title=${encodeURIComponent(e.title)}`} style={{
-                      background: "linear-gradient(180deg,#141716,#101212)",
-                      border: "1px solid #272d2d", borderRadius: 13,
-                      padding: 13, display: "flex", gap: 12, alignItems: "center",
-                      textDecoration: "none",
-                    }}>
-                      <div style={{ width: 54, height: 54, borderRadius: 9, overflow: "hidden", background: CAP_SM, flexShrink: 0, border: "1px solid #272d2d" }}>
-                        {e.assets?.boxart && (
-                          <img src={e.assets.boxart} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        )}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "#ffb454", fontFamily: "'IBM Plex Mono',monospace", marginTop: 5, letterSpacing: 0.3 }}>
-                          {e.deal.expiry ? `⏳ ${fmtCd(r)} 남음` : "⏳ 세일 진행 중"}
+                : endingDeals.length === 0
+                  ? (
+                    <div style={{ gridColumn: "1/-1", padding: "28px 0", textAlign: "center", color: "#5a615d", fontSize: 13 }}>
+                      현재 마감 임박 세일이 없습니다
+                    </div>
+                  )
+                  : endingDeals.map((e) => {
+                    const r = remainSec(e.deal.expiry);
+                    void tick;
+                    return (
+                      <Link key={e.id} href={`/game/${e.id}?title=${encodeURIComponent(e.title)}`} style={{
+                        background: "linear-gradient(180deg,#141716,#101212)",
+                        border: "1px solid #272d2d", borderRadius: 13,
+                        padding: 13, display: "flex", gap: 12, alignItems: "center",
+                        textDecoration: "none",
+                      }}>
+                        <div style={{ width: 54, height: 54, borderRadius: 9, overflow: "hidden", background: CAP_SM, flexShrink: 0, border: "1px solid #272d2d" }}>
+                          {e.assets?.boxart && (
+                            <img
+                              src={e.assets.boxart}
+                              alt=""
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              onError={(ev) => { (ev.target as HTMLImageElement).style.display = "none"; }}
+                            />
+                          )}
                         </div>
-                      </div>
-                      <div style={{ textAlign: "right", flexShrink: 0 }}>
-                        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 600, color: "#5fd39a" }}>-{e.deal.cut}%</div>
-                        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700, color: "#e6ebe8", marginTop: 3 }}>{won(e.deal.price.amount)}</div>
-                      </div>
-                    </Link>
-                  );
-                })
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "#ffb454", fontFamily: "'IBM Plex Mono',monospace", marginTop: 5, letterSpacing: 0.3 }}>
+                            ⏳ {fmtCd(r)} 남음
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
+                          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 600, color: "#5fd39a" }}>-{e.deal.cut}%</div>
+                          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700, color: "#e6ebe8", marginTop: 3 }}>{won(e.deal.price.amount)}</div>
+                        </div>
+                      </Link>
+                    );
+                  })
               }
             </div>
           </div>
