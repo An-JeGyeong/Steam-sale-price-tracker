@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const BASE_URL = "https://api.isthereanydeal.com";
+const STEAM_SHOP = "61"; // ITAD shop ID for Steam
 
 export const PriceInfoSchema = z.object({
   amount: z.number(),
@@ -66,6 +67,14 @@ const HistoryPointSchema = z.object({
   expiry: z.string().nullish(),
 });
 
+// ITAD game lookup by shop-specific ID (e.g. Steam AppID)
+const GameLookupSchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  title: z.string(),
+  assets: z.object({ boxart: z.string().optional() }).optional(),
+});
+
 export type GameSearchResult = z.infer<typeof GameSearchResultSchema>;
 export type PriceInfo = z.infer<typeof PriceInfoSchema>;
 export type DealFlag = z.infer<typeof DealSchema>["flag"];
@@ -73,12 +82,11 @@ export type Deal = z.infer<typeof DealSchema>;
 export type GamePriceResult = z.infer<typeof GamePriceResultSchema>;
 export type DealItem = z.infer<typeof DealItemSchema>;
 export type HistoryPoint = z.infer<typeof HistoryPointSchema>;
+export type GameLookup = z.infer<typeof GameLookupSchema>;
 
 function getApiKey(): string {
   const key = process.env.ITAD_API_KEY;
-  if (!key) {
-    throw new Error("ITAD_API_KEY가 설정되지 않았습니다. .env.local을 확인하세요.");
-  }
+  if (!key) throw new Error("ITAD_API_KEY가 설정되지 않았습니다.");
   return key;
 }
 
@@ -97,6 +105,7 @@ export async function getPrices(
   gameIds: string[],
   country = "KR"
 ): Promise<GamePriceResult[]> {
+  if (gameIds.length === 0) return [];
   const url = new URL(`${BASE_URL}/games/prices/v3`);
   url.searchParams.set("key", getApiKey());
   url.searchParams.set("country", country);
@@ -111,12 +120,14 @@ export async function getPrices(
   return z.array(GamePriceResultSchema).parse(await res.json());
 }
 
+// Steam-only deals (shops=61)
 export async function getDeals(limit = 8, country = "KR"): Promise<DealItem[]> {
   const url = new URL(`${BASE_URL}/deals/v2`);
   url.searchParams.set("key", getApiKey());
   url.searchParams.set("limit", String(limit));
   url.searchParams.set("sort", "-discount");
   url.searchParams.set("country", country);
+  url.searchParams.set("shops", STEAM_SHOP);
 
   const res = await fetch(url.toString(), { next: { revalidate: 1800 } });
   if (!res.ok) throw new Error(`딜 목록 조회 실패 (${res.status})`);
@@ -129,9 +140,27 @@ export async function getPriceHistory(gameId: string, country = "KR"): Promise<H
   url.searchParams.set("key", getApiKey());
   url.searchParams.set("id", gameId);
   url.searchParams.set("country", country);
-  url.searchParams.set("shops", "61");
+  url.searchParams.set("shops", STEAM_SHOP);
 
   const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
   if (!res.ok) throw new Error(`가격 히스토리 조회 실패 (${res.status})`);
   return z.array(HistoryPointSchema).parse(await res.json());
+}
+
+// Map Steam AppID → ITAD game ID
+export async function lookupByAppId(appId: number): Promise<GameLookup | null> {
+  const url = new URL(`${BASE_URL}/games/lookup/v1`);
+  url.searchParams.set("key", getApiKey());
+  url.searchParams.set("shop", "steam");
+  url.searchParams.set("game_id", String(appId));
+
+  const res = await fetch(url.toString(), { next: { revalidate: 86400 } });
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  // response may be the game object directly or wrapped in { game: {...} }
+  const candidate = (data?.game ?? data) as unknown;
+  const parsed = GameLookupSchema.safeParse(candidate);
+  return parsed.success ? parsed.data : null;
 }
