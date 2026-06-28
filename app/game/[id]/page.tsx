@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import Nav from "@/components/Nav";
 import PriceChart, { type RawPoint } from "@/components/PriceChart";
-import type { HistoryPoint } from "@/lib/itad";
+import type { HistoryPoint, DealItem } from "@/lib/itad";
 
 /* ── mock chart data (fallback) ── */
 const MOCK_RAW: RawPoint[] = [
@@ -23,12 +23,6 @@ const MOCK_RAW: RawPoint[] = [
   { m: "26.6",  p: 18150, sale: "여름세일", d: 67, cur: true },
 ];
 
-const RECS = [
-  { name: "추천 게임 A", tag: "액션 · 인디",       disc: 80, now: 9900,  old: 49000 },
-  { name: "추천 게임 B", tag: "메트로배니아",        disc: 45, now: 22000, old: 40000 },
-  { name: "추천 게임 C", tag: "액션 · 로그라이크",  disc: 67, now: 13200, old: 39900 },
-  { name: "추천 게임 D", tag: "인디 · 플랫포머",    disc: 30, now: 31500, old: 45000 },
-];
 
 const HERO_BG = "repeating-linear-gradient(45deg,transparent 0 18px,rgba(32,36,34,.5) 18px 36px),linear-gradient(135deg,#1c1f1e,#141716)";
 const CAP_BG  = "repeating-linear-gradient(45deg,transparent 0 16px,rgba(32,36,34,.5) 16px 32px),linear-gradient(135deg,#1e211f,#141716)";
@@ -88,6 +82,7 @@ export default function GameDetailPage() {
   } | null>(null);
   const [rawPoints, setRawPoints] = useState<RawPoint[]>(MOCK_RAW);
   const [priceError, setPriceError] = useState(false);
+  const [relatedDeals, setRelatedDeals] = useState<DealItem[]>([]);
 
   /* countdown */
   const [remain, setRemain] = useState(1 * 86400 + 14 * 3600 + 22 * 60 + 3);
@@ -131,6 +126,18 @@ export default function GameDetailPage() {
         if (pts.length >= 2) setRawPoints(pts);
       })
       .catch(() => { /* keep mock */ });
+  }, [gameId]);
+
+  /* fetch related deals */
+  useEffect(() => {
+    fetch("/api/deals?limit=8")
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data: unknown) => {
+        if (!Array.isArray(data)) return;
+        const filtered = (data as DealItem[]).filter((d) => d.id !== gameId).slice(0, 4);
+        setRelatedDeals(filtered);
+      })
+      .catch(() => {});
   }, [gameId]);
 
   const title = titleParam || priceData?.title || "게임 타이틀";
@@ -245,33 +252,41 @@ export default function GameDetailPage() {
               </div>
             </>)}
 
-            {/* recommendations panel */}
-            {panel(<>
+            {/* related deals panel */}
+            {relatedDeals.length > 0 && panel(<>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
                 <div style={{ fontSize: 17, fontWeight: 700, color: "#eef6f0", display: "flex", alignItems: "center", gap: 9 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#828783" strokeWidth="2">
-                    <path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8L4.5 9.7l5.9-.9z" />
+                    <path d="M12 2c1 4 4 5 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 11 12 10 12 2z" />
                   </svg>
-                  비슷한 게임
+                  지금 할인 중인 게임
                 </div>
-                <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11.5, color: "#7e827f" }}>장르·태그 기반 추천</span>
+                <Link href="/" style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11.5, color: "#7e827f", textDecoration: "none" }}>전체 보기 →</Link>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
-                {RECS.map((r) => (
-                  <div key={r.name} className="reccard" style={{ background: "#121414", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden", cursor: "pointer", transition: "border-color .15s" }}>
-                    <div style={{ height: 84, background: REC_BG, position: "relative" }}>
-                      <span style={{ position: "absolute", top: 8, left: 10, font: "600 9px 'IBM Plex Mono'", color: "#3f5849", letterSpacing: 1 }}>CAPSULE</span>
-                    </div>
-                    <div style={{ padding: "11px 13px" }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 700, color: "#cfd3d0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.name}</div>
-                      <div style={{ fontSize: 11, color: "#828783", marginTop: 2 }}>{r.tag}</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 9 }}>
-                        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 600, color: "#06120b", background: "#5fd39a", padding: "2px 6px", borderRadius: 5 }}>-{r.disc}%</span>
-                        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 14, fontWeight: 700, color: "#5fd39a" }}>{won(r.now)}</span>
-                        <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, color: "#7e827f", textDecoration: "line-through" }}>{won(r.old)}</span>
+                {relatedDeals.map((r) => (
+                  <Link key={r.id} href={`/game/${r.id}?title=${encodeURIComponent(r.title)}`} style={{ textDecoration: "none" }}>
+                    <div style={{ background: "#121414", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden" }}>
+                      <div style={{ height: 84, background: REC_BG, overflow: "hidden", position: "relative" }}>
+                        {r.assets?.boxart && (
+                          <img
+                            src={r.assets.boxart}
+                            alt=""
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
+                        )}
+                      </div>
+                      <div style={{ padding: "11px 13px" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#cfd3d0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.title}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+                          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 700, color: "#07120b", background: "#5fd39a", padding: "2px 6px", borderRadius: 5 }}>-{r.deal.cut}%</span>
+                          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 700, color: "#5fd39a" }}>{won(r.deal.price.amount)}</span>
+                          <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, color: "#7e827f", textDecoration: "line-through" }}>{won(r.deal.regular.amount)}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </>)}

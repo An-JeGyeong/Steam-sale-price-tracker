@@ -106,7 +106,7 @@ function NavSearchBox() {
               }}
             >
               {g.assets?.boxart ? (
-                <img src={g.assets.boxart} alt="" style={{ width: 40, height: 28, borderRadius: 5, objectFit: "cover", flexShrink: 0 }} />
+                <img src={g.assets.boxart} alt="" style={{ width: 40, height: 28, borderRadius: 5, objectFit: "cover", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               ) : (
                 <span style={{ width: 40, height: 28, borderRadius: 5, background: "#1a1d1d", flexShrink: 0, display: "inline-block" }} />
               )}

@@ -196,7 +196,7 @@ function HeroSearch() {
               }}
             >
               {g.assets?.boxart ? (
-                <img src={g.assets.boxart} alt="" style={{ width: 46, height: 32, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+                <img src={g.assets.boxart} alt="" style={{ width: 46, height: 32, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               ) : (
                 <span style={{ width: 46, height: 32, borderRadius: 6, background: "#1a1d1d", flexShrink: 0, display: "inline-block" }} />
               )}
@@ -247,7 +247,12 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
       <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
         <div style={{ width: 56, height: 40, borderRadius: 7, overflow: "hidden", background: CAP_SM, flexShrink: 0 }}>
           {item.assets?.boxart && (
-            <img src={item.assets.boxart} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img
+              src={item.assets.boxart}
+              alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
           )}
         </div>
         <div style={{ minWidth: 0 }}>
