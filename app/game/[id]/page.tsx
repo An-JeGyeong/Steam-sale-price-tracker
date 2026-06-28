@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Nav from "@/components/Nav";
 import PriceChart, { type RawPoint } from "@/components/PriceChart";
 import type { HistoryPoint, DealItem } from "@/lib/itad";
+import { steamAppIdFromUrl, steamHeroUrl, steamHeaderUrl, steamCapsuleUrl } from "@/lib/itad";
 
 /* ── mock chart data (fallback) ── */
 const MOCK_RAW: RawPoint[] = [
@@ -152,6 +153,10 @@ export default function GameDetailPage() {
   const verdictBg  = isLow ? "#5fd39a"    : priceError ? "#e8705f" : "#5fd39a";
   const verdictTxt = isLow ? "역대 최저가!" : priceError ? "가격 확인 필요" : "지금 사기 좋은 가격";
 
+  const appId      = priceData?.shopUrl ? steamAppIdFromUrl(priceData.shopUrl) : null;
+  const heroImgUrl = appId ? steamHeroUrl(appId) : null;
+  const capImgUrl  = appId ? steamCapsuleUrl(appId) : null;
+
   const panel = (children: React.ReactNode, style?: React.CSSProperties) => (
     <div style={{
       background: "linear-gradient(180deg,#171a1a,#121414)",
@@ -174,10 +179,20 @@ export default function GameDetailPage() {
 
         {/* hero image */}
         <div style={{ height: 300, borderRadius: 14, border: "1px solid #272d2d", background: HERO_BG, display: "flex", alignItems: "flex-end", padding: "22px 26px", position: "relative", overflow: "hidden" }}>
-          <span style={{ position: "absolute", top: 14, left: 18, font: "600 11px 'IBM Plex Mono'", color: "#3f5849", letterSpacing: 1 }}>
-            HERO ART · 1232×460
-          </span>
-          <div>
+          {heroImgUrl && (
+            <img
+              src={heroImgUrl}
+              alt=""
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                if (!img.dataset.fb) { img.dataset.fb = "1"; img.src = steamHeaderUrl(appId!); }
+                else img.style.display = "none";
+              }}
+            />
+          )}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,.78) 0%, rgba(0,0,0,.35) 55%, rgba(0,0,0,.08) 100%)" }} />
+          <div style={{ position: "relative", zIndex: 1 }}>
             <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: -0.6, color: "#f2f8f4", textShadow: "0 2px 18px rgba(0,0,0,.55)", lineHeight: 1.1 }}>
               {title}
             </div>
@@ -268,14 +283,18 @@ export default function GameDetailPage() {
                   <Link key={r.id} href={`/game/${r.id}?title=${encodeURIComponent(r.title)}`} style={{ textDecoration: "none" }}>
                     <div style={{ background: "#121414", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden" }}>
                       <div style={{ height: 84, background: REC_BG, overflow: "hidden", position: "relative" }}>
-                        {r.assets?.boxart && (
-                          <img
-                            src={r.assets.boxart}
-                            alt=""
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                          />
-                        )}
+                        {(() => {
+                          const rid = steamAppIdFromUrl(r.deal.url);
+                          const src = r.assets?.boxart ?? (rid ? steamHeaderUrl(rid) : null);
+                          return src ? (
+                            <img
+                              src={src}
+                              alt=""
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                            />
+                          ) : null;
+                        })()}
                       </div>
                       <div style={{ padding: "11px 13px" }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: "#cfd3d0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.title}</div>
@@ -295,10 +314,18 @@ export default function GameDetailPage() {
           {/* right column — sticky buy panel */}
           <div style={{ position: "sticky", top: 80 }}>
             <div style={{ background: "linear-gradient(180deg,#15241b,#121414)", border: "1px solid #28402f", borderRadius: 14, overflow: "hidden" }}>
-              {/* capsule placeholder */}
-              <div style={{ height: 140, background: CAP_BG, position: "relative", display: "flex", alignItems: "flex-end", padding: 12 }}>
-                <span style={{ position: "absolute", top: 12, left: 14, font: "600 10px 'IBM Plex Mono'", color: "#3f5849", letterSpacing: 1 }}>CAPSULE 616×353</span>
-                <span style={{
+              {/* capsule image */}
+              <div style={{ height: 140, background: CAP_BG, position: "relative", display: "flex", alignItems: "flex-end", padding: 12, overflow: "hidden" }}>
+                {capImgUrl && (
+                  <img
+                    src={capImgUrl}
+                    alt=""
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.9 }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                  />
+                )}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,.55) 0%, transparent 60%)" }} />
+                <span style={{ position: "relative", zIndex: 1,
                   display: "inline-flex", alignItems: "center", gap: 7,
                   fontSize: 12, fontWeight: 700, color: "#0a120d",
                   background: verdictBg, padding: "5px 11px", borderRadius: 7,

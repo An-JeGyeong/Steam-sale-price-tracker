@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
 import type { GameSearchResult, DealItem } from "@/lib/itad";
+import { steamAppIdFromUrl, steamHeaderUrl } from "@/lib/itad";
 
 /* ── helpers ── */
 function won(n: number) { return "₩" + n.toLocaleString("ko-KR"); }
@@ -232,6 +233,8 @@ function HeroSearch() {
 /* ── deal table row ── */
 function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: boolean }) {
   const [hovered, setHovered] = useState(false);
+  const appId = steamAppIdFromUrl(item.deal.url);
+  const imgSrc = item.assets?.boxart ?? (appId ? steamHeaderUrl(appId) : null);
   const reg = item.deal.regular.amount;
   const now = item.deal.price.amount;
   const cut = item.deal.cut;
@@ -266,9 +269,9 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
       {/* thumbnail + title */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
         <div style={{ width: 56, height: 40, borderRadius: 7, overflow: "hidden", background: CAP_SM, flexShrink: 0 }}>
-          {item.assets?.boxart && (
+          {imgSrc && (
             <img
-              src={item.assets.boxart}
+              src={imgSrc}
               alt=""
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
