@@ -394,37 +394,9 @@ export default function HomePage() {
       <Nav />
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "0 22px" }}>
 
-        {/* hero */}
-        <div style={{ textAlign: "center", padding: "54px 0 40px" }}>
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: 7,
-            fontSize: 12, fontWeight: 700, color: "#5fd39a",
-            background: "rgba(67,194,130,.1)", border: "1px solid rgba(67,194,130,.22)",
-            padding: "6px 13px", borderRadius: 20,
-          }}>
-            <span style={{ width: 14, height: 14, borderRadius: 4, flexShrink: 0, background: "linear-gradient(135deg,#43c282,#1d7a52)", boxShadow: "0 0 14px rgba(67,194,130,.45)" }} />
-            Steam 전용 가격 추적
-          </span>
-          <h1 style={{ fontSize: 38, fontWeight: 800, letterSpacing: -1, color: "#f2f8f4", margin: "18px 0 0", lineHeight: 1.18 }}>
-            지금 사도 될까?<br />
-            <span style={{ color: "#5fd39a" }}>역대 최저가</span>로 답을 드립니다
-          </h1>
-          <p style={{ fontSize: 15, color: "#8b8f8b", marginTop: 12 }}>
-            Steam 게임의 가격 변동을 추적하고, 최저가일 때 알림을 받아보세요
-          </p>
+        {/* hero — search only */}
+        <div style={{ padding: "40px 0 32px" }}>
           <HeroSearch />
-          <div style={{ display: "flex", justifyContent: "center", gap: 40, marginTop: 30 }}>
-            {[
-              { val: "72,418", label: "추적 중인 게임" },
-              { val: "1,204",  label: "오늘 최저가 갱신" },
-              { val: "평균 -58%", label: "현재 핫딜 할인율" },
-            ].map(({ val, label }) => (
-              <div key={label} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'IBM Plex Mono',monospace", color: "#5fd39a" }}>{val}</div>
-                <div style={{ fontSize: 12, color: "#7e827f", marginTop: 4 }}>{label}</div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* ─── 할인 중인 게임 (SteamDB-style table) ─── */}
