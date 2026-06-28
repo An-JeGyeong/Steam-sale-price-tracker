@@ -35,22 +35,24 @@ const CAP_SM = "repeating-linear-gradient(45deg,transparent 0 10px,rgba(32,36,34
 
 const CAP_XS = "repeating-linear-gradient(45deg,transparent 0 9px,rgba(32,36,34,.55) 9px 18px),linear-gradient(135deg,#1c1f1e,#141716)";
 
-interface SaleBanner { label: string; icon: string; color: string; bg: string; border: string }
+interface SaleBanner { label: string; icon: string; color: string; bg: string; border: string; until: string }
 
 function detectSale(): SaleBanner | null {
   const now = new Date();
   const m = now.getMonth() + 1;
   const d = now.getDate();
+  const y = now.getFullYear();
+
   if ((m === 6 && d >= 24) || (m === 7 && d <= 11))
-    return { label: "Steam 여름 세일 진행 중!", icon: "☀️", color: "#f0a030", bg: "rgba(240,160,48,.1)", border: "rgba(240,160,48,.3)" };
+    return { label: "Steam 여름 세일 진행 중!", icon: "☀️", color: "#f0a030", bg: "rgba(240,160,48,.1)", border: "rgba(240,160,48,.3)", until: `7월 11일까지` };
   if ((m === 12 && d >= 19) || (m === 1 && d <= 5))
-    return { label: "Steam 겨울 세일 진행 중!", icon: "❄️", color: "#60c8e8", bg: "rgba(96,200,232,.1)", border: "rgba(96,200,232,.3)" };
+    return { label: "Steam 겨울 세일 진행 중!", icon: "❄️", color: "#60c8e8", bg: "rgba(96,200,232,.1)", border: "rgba(96,200,232,.3)", until: m === 12 ? `${y + 1}년 1월 5일까지` : `1월 5일까지` };
   if (m === 11 && d >= 21)
-    return { label: "Steam 가을 세일 진행 중!", icon: "🍂", color: "#dc8040", bg: "rgba(220,128,64,.1)", border: "rgba(220,128,64,.3)" };
+    return { label: "Steam 가을 세일 진행 중!", icon: "🍂", color: "#dc8040", bg: "rgba(220,128,64,.1)", border: "rgba(220,128,64,.3)", until: `12월 1일까지` };
   if (m === 3 && d >= 13 && d <= 20)
-    return { label: "Steam 봄 세일 진행 중!", icon: "🌸", color: "#e070a8", bg: "rgba(224,112,168,.1)", border: "rgba(224,112,168,.3)" };
+    return { label: "Steam 봄 세일 진행 중!", icon: "🌸", color: "#e070a8", bg: "rgba(224,112,168,.1)", border: "rgba(224,112,168,.3)", until: `3월 20일까지` };
   if ((m === 1 && d >= 22) || (m === 2 && d <= 5))
-    return { label: "Steam 설날 세일 진행 중!", icon: "🧧", color: "#e04040", bg: "rgba(224,64,64,.1)", border: "rgba(224,64,64,.3)" };
+    return { label: "Steam 설날 세일 진행 중!", icon: "🧧", color: "#e04040", bg: "rgba(224,64,64,.1)", border: "rgba(224,64,64,.3)", until: `2월 5일까지` };
   return null;
 }
 
@@ -446,6 +448,10 @@ export default function HomePage() {
                   <span style={{ fontSize: 18, lineHeight: 1 }}>{sale.icon}</span>
                   <span style={{ fontSize: 15, fontWeight: 700, color: sale.color, letterSpacing: -0.2 }}>
                     {sale.label}
+                  </span>
+                  <span style={{ width: 1, height: 14, background: sale.border, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: sale.color, opacity: 0.75 }}>
+                    {sale.until}
                   </span>
                   <span style={{
                     width: 7, height: 7, borderRadius: "50%",
