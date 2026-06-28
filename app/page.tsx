@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
-import DealCard, { type DealData } from "@/components/DealCard";
 import type { GameSearchResult, DealItem } from "@/lib/itad";
 
 /* ── helpers ── */
@@ -24,24 +23,14 @@ function remainSec(expiry: string | null | undefined): number {
   return Math.max(0, Math.floor((new Date(expiry).getTime() - Date.now()) / 1000));
 }
 
-function dealItemToCard(item: DealItem): DealData {
-  const reg = item.deal.regular.amount;
-  const now = item.deal.price.amount;
-  return {
-    id: item.id,
-    name: item.title,
-    tags: item.deal.shop.name,
-    old: reg,
-    now,
-    disc: item.deal.cut,
-    low: item.deal.flag === "H",
-    spark: [reg, Math.round(reg * 0.85), Math.round(reg * 0.7), now],
-    boxart: item.assets?.boxart,
-  };
+function discountColor(cut: number): string {
+  if (cut >= 75) return "#5fd39a";
+  if (cut >= 50) return "#43c282";
+  if (cut >= 25) return "#e8b84b";
+  return "#a3a8a4";
 }
 
 const CAP_SM = "repeating-linear-gradient(45deg,transparent 0 10px,rgba(32,36,34,.55) 10px 20px),linear-gradient(135deg,#1c1f1e,#141716)";
-const CAP_XS = "repeating-linear-gradient(45deg,transparent 0 9px,rgba(32,36,34,.55) 9px 18px),linear-gradient(135deg,#1c1f1e,#141716)";
 
 const TRACKED = [
   { id: "1", name: "게임 X", tag: "액션 · 메트로배니아", now: 18150, dir: "down" as const, ch: "12%" },
@@ -58,23 +47,29 @@ const TREND_MAP = {
   flat: ["#8b8f8b", "■ "]  as const,
 };
 
-/* ── skeleton card ── */
-function SkeletonCard() {
+const CAP_XS = "repeating-linear-gradient(45deg,transparent 0 9px,rgba(32,36,34,.55) 9px 18px),linear-gradient(135deg,#1c1f1e,#141716)";
+
+/* ── skeleton row ── */
+function SkeletonRow({ i }: { i: number }) {
   return (
     <div style={{
-      background: "linear-gradient(180deg,#141716,#101212)",
-      border: "1px solid #272d2d", borderRadius: 14, overflow: "hidden",
+      display: "grid",
+      gridTemplateColumns: "40px 1fr 80px 90px 100px 90px",
+      gap: 0,
+      padding: "11px 16px",
+      background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,.018)",
+      borderBottom: "1px solid #1a1e1d",
+      alignItems: "center",
     }}>
-      <div style={{ height: 104, background: CAP_SM }} />
-      <div style={{ padding: "13px 14px" }}>
-        <div style={{ height: 16, borderRadius: 6, background: "#1e2222", width: "75%", marginBottom: 8 }} />
-        <div style={{ height: 11, borderRadius: 5, background: "#181a1a", width: "45%", marginBottom: 14 }} />
-        <div style={{ height: 34, borderRadius: 5, background: "#1a1d1a" }} />
-        <div style={{ display: "flex", gap: 8, marginTop: 11 }}>
-          <div style={{ height: 22, width: 52, borderRadius: 6, background: "#1e2a22" }} />
-          <div style={{ height: 22, width: 80, borderRadius: 6, background: "#1e2222" }} />
-        </div>
+      <div style={{ height: 12, width: 18, borderRadius: 4, background: "#1e2222" }} />
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ width: 56, height: 40, borderRadius: 7, background: CAP_SM, flexShrink: 0 }} />
+        <div style={{ height: 13, borderRadius: 5, background: "#1e2222", width: "55%" }} />
       </div>
+      <div style={{ height: 22, width: 50, borderRadius: 6, background: "#1e2a22" }} />
+      <div style={{ height: 12, width: 60, borderRadius: 4, background: "#181a1a" }} />
+      <div style={{ height: 16, width: 72, borderRadius: 5, background: "#1e2222" }} />
+      <div style={{ height: 28, width: 60, borderRadius: 8, background: "#1a1d1a" }} />
     </div>
   );
 }
@@ -214,22 +209,160 @@ function HeroSearch() {
   );
 }
 
+/* ── deal table row ── */
+function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: boolean }) {
+  const [hovered, setHovered] = useState(false);
+  const reg = item.deal.regular.amount;
+  const now = item.deal.price.amount;
+  const cut = item.deal.cut;
+  const isLow = item.deal.flag === "H" || item.deal.flag === "N";
+  const col = discountColor(cut);
+
+  return (
+    <Link
+      href={`/game/${item.id}?title=${encodeURIComponent(item.title)}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "40px 1fr 80px 100px 110px 96px",
+        gap: 0,
+        padding: "10px 16px",
+        background: hovered
+          ? "rgba(95,211,154,.05)"
+          : isOdd ? "rgba(255,255,255,.018)" : "transparent",
+        borderBottom: "1px solid #1a1e1d",
+        alignItems: "center",
+        textDecoration: "none",
+        transition: "background 0.12s",
+        cursor: "pointer",
+      }}
+    >
+      {/* rank */}
+      <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 600, color: "#3d4440" }}>
+        {rank}
+      </span>
+
+      {/* thumbnail + title */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+        <div style={{ width: 56, height: 40, borderRadius: 7, overflow: "hidden", background: CAP_SM, flexShrink: 0 }}>
+          {item.assets?.boxart && (
+            <img src={item.assets.boxart} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          )}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            fontSize: 13.5, fontWeight: 700, color: "#dce3de",
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            {item.title}
+          </div>
+          {isLow && (
+            <span style={{
+              display: "inline-block", marginTop: 3,
+              fontSize: 9.5, fontWeight: 800, letterSpacing: 0.4,
+              color: "#06120b", background: "#5fd39a",
+              padding: "1.5px 6px", borderRadius: 4,
+            }}>
+              역대 최저
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* discount badge */}
+      <div>
+        <span style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          minWidth: 50, padding: "4px 8px", borderRadius: 7,
+          fontSize: 13, fontWeight: 800,
+          color: "#07120b", background: col,
+          fontFamily: "'IBM Plex Mono',monospace",
+        }}>
+          -{cut}%
+        </span>
+      </div>
+
+      {/* regular price */}
+      <div style={{
+        fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 500,
+        color: "#4a504d", textDecoration: "line-through",
+      }}>
+        {won(reg)}
+      </div>
+
+      {/* current price */}
+      <div style={{
+        fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700,
+        color: "#5fd39a",
+      }}>
+        {won(now)}
+      </div>
+
+      {/* buy button */}
+      <div>
+        <a
+          href={item.deal.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            fontSize: 11.5, fontWeight: 700,
+            color: "#07120b", background: "#5fd39a",
+            padding: "6px 12px", borderRadius: 8,
+            textDecoration: "none", whiteSpace: "nowrap",
+          }}
+        >
+          구매
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M7 17 17 7M7 7h10v10" />
+          </svg>
+        </a>
+      </div>
+    </Link>
+  );
+}
+
+/* ── deal table header ── */
+function DealTableHeader() {
+  const CELL: CSSProperties = {
+    fontSize: 11, fontWeight: 700, color: "#4a504d",
+    letterSpacing: 0.6, textTransform: "uppercase",
+    fontFamily: "'IBM Plex Mono',monospace",
+  };
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "40px 1fr 80px 100px 110px 96px",
+      gap: 0,
+      padding: "9px 16px",
+      borderBottom: "1px solid #222828",
+      background: "#111413",
+      borderRadius: "12px 12px 0 0",
+    }}>
+      <span style={CELL}>#</span>
+      <span style={CELL}>게임</span>
+      <span style={CELL}>할인</span>
+      <span style={CELL}>정가</span>
+      <span style={CELL}>현재가</span>
+      <span style={CELL}>구매</span>
+    </div>
+  );
+}
+
 /* ── main page ── */
 export default function HomePage() {
   const [tick, setTick] = useState(0);
   const [rawDeals, setRawDeals] = useState<DealItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const deals: DealData[] = rawDeals.map(dealItemToCard);
-
-  /* deals with expiry — sorted soonest-first */
   const endingItems = rawDeals
     .filter((d) => d.deal.expiry)
     .sort((a, b) => new Date(a.deal.expiry!).getTime() - new Date(b.deal.expiry!).getTime())
     .slice(0, 4);
 
-  /* fallback ending: first 4 deals when no expiry data */
   const endingFallback = rawDeals.slice(0, 4);
 
   useEffect(() => {
@@ -238,15 +371,19 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/deals?limit=8")
-      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
-      .then((data: DealItem[]) => {
-        setRawDeals(data);
+    fetch("/api/deals?limit=20")
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok || data?.error) throw new Error(data?.error ?? `HTTP ${r.status}`);
+        return data as DealItem[];
+      })
+      .then((data) => {
+        setRawDeals(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((e: unknown) => {
         setLoading(false);
-        setError(true);
+        setError(e instanceof Error ? e.message : "알 수 없는 오류");
       });
   }, []);
 
@@ -290,22 +427,54 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 오늘의 핫딜 */}
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", margin: "42px 0 18px" }}>
+        {/* ─── 할인 중인 게임 (SteamDB-style table) ─── */}
+        <div style={{ margin: "42px 0 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ fontSize: 21, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5fd39a" strokeWidth="2">
               <path d="M12 2c1 4 4 5 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 11 12 10 12 2z" />
             </svg>
-            오늘의 핫딜
-            {loading && <span style={{ fontSize: 12, color: "#5a615d", fontWeight: 400 }}>불러오는 중…</span>}
-            {error  && <span style={{ fontSize: 12, color: "#e8705f", fontWeight: 400 }}>API 오류</span>}
+            할인 중인 게임
+            {loading && (
+              <span style={{ fontSize: 12, color: "#5a615d", fontWeight: 400, letterSpacing: 0 }}>
+                불러오는 중…
+              </span>
+            )}
           </div>
-          <a href="#" className="smore" style={{ fontSize: 13, fontWeight: 600, color: "#7e827f" }}>전체 보기 →</a>
+          {error && (
+            <span style={{ fontSize: 12, color: "#e8705f", fontWeight: 600, background: "rgba(232,112,95,.1)", border: "1px solid rgba(232,112,95,.25)", padding: "4px 10px", borderRadius: 7 }}>
+              오류: {error}
+            </span>
+          )}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+
+        {/* table */}
+        <div style={{
+          background: "linear-gradient(180deg,#141716,#101212)",
+          border: "1px solid #1e2424", borderRadius: 12,
+          overflow: "hidden",
+        }}>
+          <DealTableHeader />
           {loading
-            ? Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)
-            : deals.map((g) => <DealCard key={g.id} game={g} />)
+            ? Array.from({ length: 10 }, (_, i) => <SkeletonRow key={i} i={i} />)
+            : error
+              ? (
+                <div style={{ padding: "52px 0", textAlign: "center" }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
+                  <div style={{ fontSize: 14, color: "#7e827f", lineHeight: 1.7 }}>
+                    Steam 할인 목록을 불러오지 못했습니다<br />
+                    <span style={{ fontSize: 12, color: "#4a504d" }}>{error}</span>
+                  </div>
+                </div>
+              )
+              : rawDeals.length === 0
+                ? (
+                  <div style={{ padding: "52px 0", textAlign: "center", color: "#5a615d", fontSize: 14 }}>
+                    현재 Steam 할인 중인 게임이 없습니다
+                  </div>
+                )
+                : rawDeals.map((item, i) => (
+                  <DealRow key={item.id} item={item} rank={i + 1} isOdd={i % 2 !== 0} />
+                ))
           }
         </div>
 
@@ -321,20 +490,19 @@ export default function HomePage() {
                 </svg>
                 곧 끝나는 세일
               </div>
-              <a href="#" className="smore" style={{ fontSize: 13, fontWeight: 600, color: "#7e827f" }}>전체 보기 →</a>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
               {loading
                 ? Array.from({ length: 4 }, (_, i) => <SkeletonEndingCard key={i} />)
                 : showEnding.map((e) => {
                   const r = e.deal.expiry ? remainSec(e.deal.expiry) : 0;
-                  /* suppress tick warning — tick is used to re-render every second */
                   void tick;
                   return (
                     <Link key={e.id} href={`/game/${e.id}?title=${encodeURIComponent(e.title)}`} style={{
                       background: "linear-gradient(180deg,#141716,#101212)",
                       border: "1px solid #272d2d", borderRadius: 13,
                       padding: 13, display: "flex", gap: 12, alignItems: "center",
+                      textDecoration: "none",
                     }}>
                       <div style={{ width: 54, height: 54, borderRadius: 9, overflow: "hidden", background: CAP_SM, flexShrink: 0, border: "1px solid #272d2d" }}>
                         {e.assets?.boxart && (
@@ -373,6 +541,7 @@ export default function HomePage() {
                   <Link key={t.id} href={`/game/${t.id}`} style={{
                     display: "flex", alignItems: "center", gap: 13, padding: "13px 0",
                     borderTop: i === 0 ? "none" : "1px solid #1e2222",
+                    textDecoration: "none",
                   }}>
                     <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 14, fontWeight: 700, color: "#5a615d", width: 18, textAlign: "center" }}>{i + 1}</span>
                     <span style={{ width: 38, height: 38, borderRadius: 8, background: CAP_XS, flexShrink: 0, border: "1px solid #272d2d", display: "inline-block" }} />

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const BASE_URL = "https://api.isthereanydeal.com";
-const STEAM_SHOP = "61"; // ITAD shop ID for Steam
+const STEAM_SHOP = "61";
 
 export const PriceInfoSchema = z.object({
   amount: z.number(),
@@ -15,10 +15,10 @@ export const DealSchema = z.object({
   regular: PriceInfoSchema,
   cut: z.number(),
   storeLow: PriceInfoSchema.nullable(),
-  flag: z.enum(["H", "N", "S"]).nullable(),
+  flag: z.string().nullable(),   // more permissive — ITAD may return values beyond "H"|"N"|"S"
   url: z.string(),
   expiry: z.string().nullish(),
-});
+}).passthrough();
 
 const GameSearchResultSchema = z.object({
   id: z.string(),
@@ -47,15 +47,15 @@ const DealItemSchema = z.object({
     price: PriceInfoSchema,
     regular: PriceInfoSchema,
     cut: z.number(),
-    flag: z.enum(["H", "N", "S"]).nullable(),
+    flag: z.string().nullable(),  // more permissive
     url: z.string(),
     expiry: z.string().nullish(),
-  }),
-});
+  }).passthrough(),
+}).passthrough();
 
 const DealsResponseSchema = z.object({
   list: z.array(DealItemSchema),
-  hasMore: z.boolean(),
+  hasMore: z.boolean().optional(),
 });
 
 const HistoryPointSchema = z.object({
@@ -65,9 +65,8 @@ const HistoryPointSchema = z.object({
   cut: z.number(),
   timestamp: z.string(),
   expiry: z.string().nullish(),
-});
+}).passthrough();
 
-// ITAD game lookup by shop-specific ID (e.g. Steam AppID)
 const GameLookupSchema = z.object({
   id: z.string(),
   slug: z.string(),
@@ -77,7 +76,7 @@ const GameLookupSchema = z.object({
 
 export type GameSearchResult = z.infer<typeof GameSearchResultSchema>;
 export type PriceInfo = z.infer<typeof PriceInfoSchema>;
-export type DealFlag = z.infer<typeof DealSchema>["flag"];
+export type DealFlag = string | null;
 export type Deal = z.infer<typeof DealSchema>;
 export type GamePriceResult = z.infer<typeof GamePriceResultSchema>;
 export type DealItem = z.infer<typeof DealItemSchema>;
@@ -120,8 +119,7 @@ export async function getPrices(
   return z.array(GamePriceResultSchema).parse(await res.json());
 }
 
-// Steam-only deals (shops=61)
-export async function getDeals(limit = 8, country = "KR"): Promise<DealItem[]> {
+export async function getDeals(limit = 20, country = "KR"): Promise<DealItem[]> {
   const url = new URL(`${BASE_URL}/deals/v2`);
   url.searchParams.set("key", getApiKey());
   url.searchParams.set("limit", String(limit));
@@ -130,9 +128,15 @@ export async function getDeals(limit = 8, country = "KR"): Promise<DealItem[]> {
   url.searchParams.set("shops", STEAM_SHOP);
 
   const res = await fetch(url.toString(), { next: { revalidate: 1800 } });
-  if (!res.ok) throw new Error(`딜 목록 조회 실패 (${res.status})`);
-  const data = DealsResponseSchema.parse(await res.json());
-  return data.list;
+  if (!res.ok) throw new Error(`딜 목록 조회 실패 (${res.status}): ${await res.text()}`);
+
+  const raw = await res.json();
+
+  // Handle both { list: [...] } and [...] shapes
+  if (Array.isArray(raw)) {
+    return z.array(DealItemSchema).parse(raw);
+  }
+  return DealsResponseSchema.parse(raw).list;
 }
 
 export async function getPriceHistory(gameId: string, country = "KR"): Promise<HistoryPoint[]> {
@@ -147,7 +151,6 @@ export async function getPriceHistory(gameId: string, country = "KR"): Promise<H
   return z.array(HistoryPointSchema).parse(await res.json());
 }
 
-// Map Steam AppID → ITAD game ID
 export async function lookupByAppId(appId: number): Promise<GameLookup | null> {
   const url = new URL(`${BASE_URL}/games/lookup/v1`);
   url.searchParams.set("key", getApiKey());
@@ -159,7 +162,6 @@ export async function lookupByAppId(appId: number): Promise<GameLookup | null> {
   if (!res.ok) return null;
 
   const data = await res.json();
-  // response may be the game object directly or wrapped in { game: {...} }
   const candidate = (data?.game ?? data) as unknown;
   const parsed = GameLookupSchema.safeParse(candidate);
   return parsed.success ? parsed.data : null;
