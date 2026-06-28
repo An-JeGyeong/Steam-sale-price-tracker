@@ -41,3 +41,8 @@ body {
 .dcard:hover { border-color: #2c4135 !important; transform: translateY(-2px); }
 .reccard:hover { border-color: #2c4135 !important; }
 .smore:hover { color: var(--c-green) !important; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.45; transform: scale(0.75); }
+}

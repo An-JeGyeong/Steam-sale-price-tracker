@@ -49,6 +49,25 @@ const TREND_MAP = {
 
 const CAP_XS = "repeating-linear-gradient(45deg,transparent 0 9px,rgba(32,36,34,.55) 9px 18px),linear-gradient(135deg,#1c1f1e,#141716)";
 
+interface SaleBanner { label: string; icon: string; color: string; bg: string; border: string }
+
+function detectSale(): SaleBanner | null {
+  const now = new Date();
+  const m = now.getMonth() + 1;
+  const d = now.getDate();
+  if ((m === 6 && d >= 24) || (m === 7 && d <= 11))
+    return { label: "Steam 여름 세일 진행 중!", icon: "☀️", color: "#f0a030", bg: "rgba(240,160,48,.1)", border: "rgba(240,160,48,.3)" };
+  if ((m === 12 && d >= 19) || (m === 1 && d <= 5))
+    return { label: "Steam 겨울 세일 진행 중!", icon: "❄️", color: "#60c8e8", bg: "rgba(96,200,232,.1)", border: "rgba(96,200,232,.3)" };
+  if (m === 11 && d >= 21)
+    return { label: "Steam 가을 세일 진행 중!", icon: "🍂", color: "#dc8040", bg: "rgba(220,128,64,.1)", border: "rgba(220,128,64,.3)" };
+  if (m === 3 && d >= 13 && d <= 20)
+    return { label: "Steam 봄 세일 진행 중!", icon: "🌸", color: "#e070a8", bg: "rgba(224,112,168,.1)", border: "rgba(224,112,168,.3)" };
+  if ((m === 1 && d >= 22) || (m === 2 && d <= 5))
+    return { label: "Steam 설날 세일 진행 중!", icon: "🧧", color: "#e04040", bg: "rgba(224,64,64,.1)", border: "rgba(224,64,64,.3)" };
+  return null;
+}
+
 /* ── skeleton row ── */
 function SkeletonRow({ i }: { i: number }) {
   return (
@@ -409,6 +428,31 @@ export default function HomePage() {
 
         {/* hero — search only */}
         <div style={{ padding: "40px 0 32px" }}>
+          {/* sale banner */}
+          {(() => {
+            const sale = detectSale();
+            if (!sale || (rawDeals.length === 0 && !loading)) return null;
+            return (
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: 10,
+                  background: sale.bg, border: `1px solid ${sale.border}`,
+                  borderRadius: 12, padding: "10px 20px",
+                }}>
+                  <span style={{ fontSize: 18, lineHeight: 1 }}>{sale.icon}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: sale.color, letterSpacing: -0.2 }}>
+                    {sale.label}
+                  </span>
+                  <span style={{
+                    width: 7, height: 7, borderRadius: "50%",
+                    background: sale.color, flexShrink: 0,
+                    boxShadow: `0 0 6px ${sale.color}`,
+                    animation: "pulse 1.8s ease-in-out infinite",
+                  }} />
+                </div>
+              </div>
+            );
+          })()}
           <HeroSearch />
         </div>
 
