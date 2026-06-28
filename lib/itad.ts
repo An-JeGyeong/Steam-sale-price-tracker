@@ -123,7 +123,7 @@ export async function getDeals(limit = 20, country = "KR"): Promise<DealItem[]> 
   const url = new URL(`${BASE_URL}/deals/v2`);
   url.searchParams.set("key", getApiKey());
   url.searchParams.set("limit", String(limit));
-  url.searchParams.set("sort", "-discount");
+  url.searchParams.set("sort", "-cut");
   url.searchParams.set("country", country);
   url.searchParams.set("shops", STEAM_SHOP);
 
