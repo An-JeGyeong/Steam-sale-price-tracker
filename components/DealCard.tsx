@@ -10,6 +10,7 @@ export interface DealData {
   disc: number;
   low: boolean;
   spark: number[];
+  boxart?: string;
 }
 
 const CAP_BG = "repeating-linear-gradient(45deg,transparent 0 15px,rgba(32,36,34,.55) 15px 30px),linear-gradient(135deg,#1c1f1e,#141716)";
@@ -21,7 +22,7 @@ function won(n: number) {
 export default function DealCard({ game }: { game: DealData }) {
   return (
     <Link
-      href={`/game/${game.id ?? "1"}`}
+      href={`/game/${game.id ?? "1"}?title=${encodeURIComponent(game.name)}`}
       className="dcard"
       style={{
         background: "linear-gradient(180deg,#141716,#101212)",
@@ -32,10 +33,19 @@ export default function DealCard({ game }: { game: DealData }) {
         transition: "border-color .15s, transform .15s",
       }}
     >
-      <div style={{ height: 104, background: CAP_BG, position: "relative" }}>
-        <span style={{ position: "absolute", top: 9, left: 11, font: "600 9px 'IBM Plex Mono'", color: "#3f5849", letterSpacing: 1 }}>
-          CAPSULE
-        </span>
+      <div style={{ height: 104, background: CAP_BG, position: "relative", overflow: "hidden" }}>
+        {game.boxart && (
+          <img
+            src={game.boxart}
+            alt={game.name}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        )}
+        {!game.boxart && (
+          <span style={{ position: "absolute", top: 9, left: 11, font: "600 9px 'IBM Plex Mono'", color: "#3f5849", letterSpacing: 1 }}>
+            CAPSULE
+          </span>
+        )}
         {game.low && (
           <span style={{
             position: "absolute", top: 9, right: 9,

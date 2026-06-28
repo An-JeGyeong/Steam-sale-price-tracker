@@ -19,6 +19,11 @@ function fmtCd(sec: number): string {
   return h >= 1 ? `${h}:${z(m)}:${z(s)}` : `${z(m)}:${z(s)}`;
 }
 
+function remainSec(expiry: string | null | undefined): number {
+  if (!expiry) return 0;
+  return Math.max(0, Math.floor((new Date(expiry).getTime() - Date.now()) / 1000));
+}
+
 function dealItemToCard(item: DealItem): DealData {
   const reg = item.deal.regular.amount;
   const now = item.deal.price.amount;
@@ -30,32 +35,21 @@ function dealItemToCard(item: DealItem): DealData {
     now,
     disc: item.deal.cut,
     low: item.deal.flag === "H",
-    spark: [reg, Math.round((reg + now) / 2), now, now],
+    spark: [reg, Math.round(reg * 0.85), Math.round(reg * 0.7), now],
+    boxart: item.assets?.boxart,
   };
 }
 
 const CAP_SM = "repeating-linear-gradient(45deg,transparent 0 10px,rgba(32,36,34,.55) 10px 20px),linear-gradient(135deg,#1c1f1e,#141716)";
 const CAP_XS = "repeating-linear-gradient(45deg,transparent 0 9px,rgba(32,36,34,.55) 9px 18px),linear-gradient(135deg,#1c1f1e,#141716)";
 
-/* ── fallback mock data ── */
-const MOCK_DEALS: DealData[] = [
-  { id: "1", name: "게임 타이틀 1", tags: "Steam",  old: 55000, now: 18150, disc: 67, low: false, spark: [55,55,38,55,16,55,27,18] },
-  { id: "2", name: "게임 타이틀 2", tags: "Steam",  old: 32000, now: 9600,  disc: 70, low: true,  spark: [32,30,28,22,18,14,11,9]  },
-  { id: "3", name: "게임 타이틀 3", tags: "Steam",  old: 49000, now: 24500, disc: 50, low: false, spark: [49,49,44,49,30,49,28,24] },
-  { id: "4", name: "게임 타이틀 4", tags: "Steam",  old: 28000, now: 7000,  disc: 75, low: true,  spark: [28,26,24,20,16,12,9,7]  },
-  { id: "5", name: "게임 타이틀 5", tags: "Steam",  old: 40000, now: 22000, disc: 45, low: false, spark: [40,40,34,40,25,40,26,22] },
-  { id: "6", name: "게임 타이틀 6", tags: "Steam",  old: 22000, now: 11000, disc: 50, low: false, spark: [22,22,18,22,13,22,14,11] },
-  { id: "7", name: "게임 타이틀 7", tags: "Steam",  old: 36000, now: 12600, disc: 65, low: true,  spark: [36,33,30,24,20,16,14,12] },
-  { id: "8", name: "게임 타이틀 8", tags: "Steam",  old: 15000, now: 4500,  disc: 70, low: false, spark: [15,15,11,15,7,15,6,4.5]  },
-];
-
 const TRACKED = [
   { id: "1", name: "게임 X", tag: "액션 · 메트로배니아", now: 18150, dir: "down" as const, ch: "12%" },
-  { id: "2", name: "게임 Y", tag: "RPG · 오픈월드",     now: 24500, dir: "up"   as const, ch: "5%"  },
-  { id: "3", name: "게임 Z", tag: "인디 · 로그라이크",  now: 9600,  dir: "down" as const, ch: "30%" },
-  { id: "4", name: "게임 W", tag: "전략 · 시뮬",        now: 7000,  dir: "flat" as const, ch: "0%"  },
-  { id: "5", name: "게임 V", tag: "호러 · 생존",         now: 12600, dir: "down" as const, ch: "18%" },
-  { id: "6", name: "게임 U", tag: "퍼즐 · 캐주얼",      now: 4500,  dir: "down" as const, ch: "22%" },
+  { id: "2", name: "게임 Y", tag: "RPG · 오픈월드",      now: 24500, dir: "up"   as const, ch: "5%"  },
+  { id: "3", name: "게임 Z", tag: "인디 · 로그라이크",   now: 9600,  dir: "down" as const, ch: "30%" },
+  { id: "4", name: "게임 W", tag: "전략 · 시뮬",         now: 7000,  dir: "flat" as const, ch: "0%"  },
+  { id: "5", name: "게임 V", tag: "호러 · 생존",          now: 12600, dir: "down" as const, ch: "18%" },
+  { id: "6", name: "게임 U", tag: "퍼즐 · 캐주얼",       now: 4500,  dir: "down" as const, ch: "22%" },
 ];
 
 const TREND_MAP = {
@@ -64,7 +58,49 @@ const TREND_MAP = {
   flat: ["#8b8f8b", "■ "]  as const,
 };
 
-/* ── hero search component ── */
+/* ── skeleton card ── */
+function SkeletonCard() {
+  return (
+    <div style={{
+      background: "linear-gradient(180deg,#141716,#101212)",
+      border: "1px solid #272d2d", borderRadius: 14, overflow: "hidden",
+    }}>
+      <div style={{ height: 104, background: CAP_SM }} />
+      <div style={{ padding: "13px 14px" }}>
+        <div style={{ height: 16, borderRadius: 6, background: "#1e2222", width: "75%", marginBottom: 8 }} />
+        <div style={{ height: 11, borderRadius: 5, background: "#181a1a", width: "45%", marginBottom: 14 }} />
+        <div style={{ height: 34, borderRadius: 5, background: "#1a1d1a" }} />
+        <div style={{ display: "flex", gap: 8, marginTop: 11 }}>
+          <div style={{ height: 22, width: 52, borderRadius: 6, background: "#1e2a22" }} />
+          <div style={{ height: 22, width: 80, borderRadius: 6, background: "#1e2222" }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── skeleton ending card ── */
+function SkeletonEndingCard() {
+  return (
+    <div style={{
+      background: "linear-gradient(180deg,#141716,#101212)",
+      border: "1px solid #272d2d", borderRadius: 13,
+      padding: 13, display: "flex", gap: 12, alignItems: "center",
+    }}>
+      <div style={{ width: 54, height: 54, borderRadius: 9, background: CAP_SM, flexShrink: 0 }} />
+      <div style={{ flex: 1 }}>
+        <div style={{ height: 14, borderRadius: 5, background: "#1e2222", width: "65%", marginBottom: 8 }} />
+        <div style={{ height: 11, borderRadius: 4, background: "#1a1d1a", width: "45%" }} />
+      </div>
+      <div style={{ width: 52, textAlign: "right" }}>
+        <div style={{ height: 11, borderRadius: 4, background: "#1e2a22", marginBottom: 6 }} />
+        <div style={{ height: 16, borderRadius: 5, background: "#1e2222" }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── hero search ── */
 function HeroSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GameSearchResult[]>([]);
@@ -109,10 +145,6 @@ function HeroSearch() {
     router.push(`/game/${game.id}?title=${encodeURIComponent(game.title)}`);
   }
 
-  function submit() {
-    if (results[0]) pick(results[0]);
-  }
-
   return (
     <div ref={wrapRef} style={{ position: "relative", maxWidth: 560, margin: "26px auto 0" }}>
       <div style={{
@@ -129,7 +161,7 @@ function HeroSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
+          onKeyDown={(e) => e.key === "Enter" && results[0] && pick(results[0])}
           placeholder="게임 이름을 검색하세요"
           style={{
             flex: 1, background: "none", border: "none", outline: "none",
@@ -137,7 +169,7 @@ function HeroSearch() {
           }}
         />
         <button
-          onClick={submit}
+          onClick={() => results[0] && pick(results[0])}
           style={{
             fontSize: 13, fontWeight: 700, color: "#06120b",
             background: "#5fd39a", padding: "9px 16px", borderRadius: 10,
@@ -184,31 +216,41 @@ function HeroSearch() {
 
 /* ── main page ── */
 export default function HomePage() {
-  const [elapsed, setElapsed] = useState(0);
-  const [deals, setDeals] = useState<DealData[]>(MOCK_DEALS);
-  const [dealsLoaded, setDealsLoaded] = useState(false);
-  // sale-ending items: use first 4 deals with pseudo-expiry derived from index
-  const endingItems = deals.slice(0, 4).map((d, i) => ({
-    ...d,
-    r: (i + 1) * 3 * 3600 + (i * 44 + 12) * 60,
-  }));
+  const [tick, setTick] = useState(0);
+  const [rawDeals, setRawDeals] = useState<DealItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const deals: DealData[] = rawDeals.map(dealItemToCard);
+
+  /* deals with expiry — sorted soonest-first */
+  const endingItems = rawDeals
+    .filter((d) => d.deal.expiry)
+    .sort((a, b) => new Date(a.deal.expiry!).getTime() - new Date(b.deal.expiry!).getTime())
+    .slice(0, 4);
+
+  /* fallback ending: first 4 deals when no expiry data */
+  const endingFallback = rawDeals.slice(0, 4);
 
   useEffect(() => {
-    const iv = setInterval(() => setElapsed((t) => t + 1), 1000);
+    const iv = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(iv);
   }, []);
 
   useEffect(() => {
     fetch("/api/deals?limit=8")
-      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
       .then((data: DealItem[]) => {
-        if (data.length > 0) {
-          setDeals(data.map(dealItemToCard));
-          setDealsLoaded(true);
-        }
+        setRawDeals(data);
+        setLoading(false);
       })
-      .catch(() => { /* keep mock */ });
+      .catch(() => {
+        setLoading(false);
+        setError(true);
+      });
   }, []);
+
+  const showEnding = endingItems.length > 0 ? endingItems : endingFallback;
 
   return (
     <div>
@@ -233,28 +275,18 @@ export default function HomePage() {
           <p style={{ fontSize: 15, color: "#8b8f8b", marginTop: 12 }}>
             Steam 게임의 가격 변동을 추적하고, 최저가일 때 알림을 받아보세요
           </p>
-
           <HeroSearch />
-
           <div style={{ display: "flex", justifyContent: "center", gap: 40, marginTop: 30 }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'IBM Plex Mono',monospace", color: "#cfd3d0" }}>
-                <span style={{ color: "#5fd39a" }}>72,418</span>
+            {[
+              { val: "72,418", label: "추적 중인 게임" },
+              { val: "1,204",  label: "오늘 최저가 갱신" },
+              { val: "평균 -58%", label: "현재 핫딜 할인율" },
+            ].map(({ val, label }) => (
+              <div key={label} style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'IBM Plex Mono',monospace", color: "#5fd39a" }}>{val}</div>
+                <div style={{ fontSize: 12, color: "#7e827f", marginTop: 4 }}>{label}</div>
               </div>
-              <div style={{ fontSize: 12, color: "#7e827f", marginTop: 4 }}>추적 중인 게임</div>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'IBM Plex Mono',monospace", color: "#cfd3d0" }}>
-                <span style={{ color: "#5fd39a" }}>1,204</span>
-              </div>
-              <div style={{ fontSize: 12, color: "#7e827f", marginTop: 4 }}>오늘 최저가 갱신</div>
-            </div>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 24, fontWeight: 800, fontFamily: "'IBM Plex Mono',monospace", color: "#cfd3d0" }}>
-                평균 <span style={{ color: "#5fd39a" }}>-58%</span>
-              </div>
-              <div style={{ fontSize: 12, color: "#7e827f", marginTop: 4 }}>현재 핫딜 할인율</div>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -265,12 +297,16 @@ export default function HomePage() {
               <path d="M12 2c1 4 4 5 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 11 12 10 12 2z" />
             </svg>
             오늘의 핫딜
-            {!dealsLoaded && <span style={{ fontSize: 12, color: "#5a615d", fontWeight: 400 }}>로딩 중…</span>}
+            {loading && <span style={{ fontSize: 12, color: "#5a615d", fontWeight: 400 }}>불러오는 중…</span>}
+            {error  && <span style={{ fontSize: 12, color: "#e8705f", fontWeight: 400 }}>API 오류</span>}
           </div>
-          <a href="#" className="smore" style={{ fontSize: 13, fontWeight: 600, color: "#7e827f", transition: "color .15s" }}>전체 보기 →</a>
+          <a href="#" className="smore" style={{ fontSize: 13, fontWeight: 600, color: "#7e827f" }}>전체 보기 →</a>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
-          {deals.map((g) => <DealCard key={g.id} game={g} />)}
+          {loading
+            ? Array.from({ length: 8 }, (_, i) => <SkeletonCard key={i} />)
+            : deals.map((g) => <DealCard key={g.id} game={g} />)
+          }
         </div>
 
         {/* split */}
@@ -285,31 +321,40 @@ export default function HomePage() {
                 </svg>
                 곧 끝나는 세일
               </div>
-              <a href="#" className="smore" style={{ fontSize: 13, fontWeight: 600, color: "#7e827f", transition: "color .15s" }}>전체 보기 →</a>
+              <a href="#" className="smore" style={{ fontSize: 13, fontWeight: 600, color: "#7e827f" }}>전체 보기 →</a>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
-              {endingItems.map((e) => {
-                const remain = Math.max(0, e.r - elapsed);
-                return (
-                  <Link key={e.id} href={`/game/${e.id}?title=${encodeURIComponent(e.name)}`} style={{
-                    background: "linear-gradient(180deg,#141716,#101212)",
-                    border: "1px solid #272d2d", borderRadius: 13,
-                    padding: 13, display: "flex", gap: 12, alignItems: "center",
-                  }}>
-                    <div style={{ width: 54, height: 54, borderRadius: 9, background: CAP_SM, flexShrink: 0, border: "1px solid #272d2d" }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.name}</div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: "#ffb454", fontFamily: "'IBM Plex Mono',monospace", marginTop: 5, letterSpacing: 0.3 }}>
-                        ⏳ {fmtCd(remain)} 남음
+              {loading
+                ? Array.from({ length: 4 }, (_, i) => <SkeletonEndingCard key={i} />)
+                : showEnding.map((e) => {
+                  const r = e.deal.expiry ? remainSec(e.deal.expiry) : 0;
+                  /* suppress tick warning — tick is used to re-render every second */
+                  void tick;
+                  return (
+                    <Link key={e.id} href={`/game/${e.id}?title=${encodeURIComponent(e.title)}`} style={{
+                      background: "linear-gradient(180deg,#141716,#101212)",
+                      border: "1px solid #272d2d", borderRadius: 13,
+                      padding: 13, display: "flex", gap: 12, alignItems: "center",
+                    }}>
+                      <div style={{ width: 54, height: 54, borderRadius: 9, overflow: "hidden", background: CAP_SM, flexShrink: 0, border: "1px solid #272d2d" }}>
+                        {e.assets?.boxart && (
+                          <img src={e.assets.boxart} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        )}
                       </div>
-                    </div>
-                    <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 600, color: "#5fd39a" }}>-{e.disc}%</div>
-                      <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700, color: "#e6ebe8", marginTop: 3 }}>{won(e.now)}</div>
-                    </div>
-                  </Link>
-                );
-              })}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "#ffb454", fontFamily: "'IBM Plex Mono',monospace", marginTop: 5, letterSpacing: 0.3 }}>
+                          {e.deal.expiry ? `⏳ ${fmtCd(r)} 남음` : "⏳ 세일 진행 중"}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 600, color: "#5fd39a" }}>-{e.deal.cut}%</div>
+                        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700, color: "#e6ebe8", marginTop: 3 }}>{won(e.deal.price.amount)}</div>
+                      </div>
+                    </Link>
+                  );
+                })
+              }
             </div>
           </div>
 
