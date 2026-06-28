@@ -32,21 +32,6 @@ function discountColor(cut: number): string {
 
 const CAP_SM = "repeating-linear-gradient(45deg,transparent 0 10px,rgba(32,36,34,.55) 10px 20px),linear-gradient(135deg,#1c1f1e,#141716)";
 
-const TRACKED = [
-  { id: "1", name: "게임 X", tag: "액션 · 메트로배니아", now: 18150, dir: "down" as const, ch: "12%" },
-  { id: "2", name: "게임 Y", tag: "RPG · 오픈월드",      now: 24500, dir: "up"   as const, ch: "5%"  },
-  { id: "3", name: "게임 Z", tag: "인디 · 로그라이크",   now: 9600,  dir: "down" as const, ch: "30%" },
-  { id: "4", name: "게임 W", tag: "전략 · 시뮬",         now: 7000,  dir: "flat" as const, ch: "0%"  },
-  { id: "5", name: "게임 V", tag: "호러 · 생존",          now: 12600, dir: "down" as const, ch: "18%" },
-  { id: "6", name: "게임 U", tag: "퍼즐 · 캐주얼",       now: 4500,  dir: "down" as const, ch: "22%" },
-];
-
-const TREND_MAP = {
-  down: ["#5fd39a", "▼ -"] as const,
-  up:   ["#e8705f", "▲ +"] as const,
-  flat: ["#8b8f8b", "■ "]  as const,
-};
-
 const CAP_XS = "repeating-linear-gradient(45deg,transparent 0 9px,rgba(32,36,34,.55) 9px 18px),linear-gradient(135deg,#1c1f1e,#141716)";
 
 interface SaleBanner { label: string; icon: string; color: string; bg: string; border: string }
@@ -110,6 +95,22 @@ function SkeletonEndingCard() {
         <div style={{ height: 11, borderRadius: 4, background: "#1e2a22", marginBottom: 6 }} />
         <div style={{ height: 16, borderRadius: 5, background: "#1e2222" }} />
       </div>
+    </div>
+  );
+}
+
+/* ── skeleton tracked row ── */
+function SkeletonTrackedRow() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 13, padding: "13px 0", borderTop: "1px solid #1e2222" }}>
+      <div style={{ width: 18, height: 12, borderRadius: 4, background: "#1e2222" }} />
+      <div style={{ width: 38, height: 38, borderRadius: 8, background: CAP_XS, flexShrink: 0 }} />
+      <div style={{ flex: 1 }}>
+        <div style={{ height: 13, borderRadius: 5, background: "#1e2222", width: "60%", marginBottom: 6 }} />
+        <div style={{ height: 10, borderRadius: 4, background: "#181a1a", width: "35%" }} />
+      </div>
+      <div style={{ width: 38, height: 18, borderRadius: 5, background: "#1e2a22" }} />
+      <div style={{ width: 64, height: 14, borderRadius: 4, background: "#1e2222" }} />
     </div>
   );
 }
@@ -566,38 +567,83 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 많이 추적되는 게임 */}
-          <div>
-            <div style={{ fontSize: 21, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9, margin: "42px 0 18px" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5fd39a" strokeWidth="2">
-                <path d="M3 17l5-5 4 3 7-8" /><path d="M21 7v5h-5" />
-              </svg>
-              많이 추적되는 게임
-            </div>
-            <div style={{ background: "linear-gradient(180deg,#141716,#101212)", border: "1px solid #272d2d", borderRadius: 14, padding: "8px 18px" }}>
-              {TRACKED.map((t, i) => {
-                const [col, pre] = TREND_MAP[t.dir];
-                return (
-                  <Link key={t.id} href={`/game/${t.id}`} style={{
-                    display: "flex", alignItems: "center", gap: 13, padding: "13px 0",
-                    borderTop: i === 0 ? "none" : "1px solid #1e2222",
-                    textDecoration: "none",
-                  }}>
-                    <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 14, fontWeight: 700, color: "#5a615d", width: 18, textAlign: "center" }}>{i + 1}</span>
-                    <span style={{ width: 38, height: 38, borderRadius: 8, background: CAP_XS, flexShrink: 0, border: "1px solid #272d2d", display: "inline-block" }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.name}</div>
-                      <div style={{ fontSize: 11, color: "#7e827f", marginTop: 2 }}>{t.tag}</div>
-                    </div>
-                    <div style={{ flexShrink: 0, textAlign: "right", width: 62 }}>
-                      <span style={{ color: col, fontFamily: "'IBM Plex Mono',monospace", fontWeight: 600, fontSize: 12 }}>{pre}{t.ch}</span>
-                    </div>
-                    <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 14, fontWeight: 700, color: "#5fd39a", width: 72, textAlign: "right", flexShrink: 0 }}>{won(t.now)}</div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+          {/* 역대최저 갱신 중 */}
+          {(() => {
+            const lowGames  = rawDeals.filter((d) => d.deal.flag === "H" || d.deal.flag === "N");
+            const restGames = rawDeals.filter((d) => d.deal.flag !== "H" && d.deal.flag !== "N");
+            const topGames  = [...lowGames, ...restGames].slice(0, 6);
+            const hasLow    = lowGames.length > 0;
+            return (
+              <div>
+                <div style={{ fontSize: 21, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9, margin: "42px 0 18px" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5fd39a" strokeWidth="2">
+                    <path d="M3 17l5-5 4 3 7-8" /><path d="M21 7v5h-5" />
+                  </svg>
+                  {hasLow ? "역대최저 갱신 중" : "할인율 TOP 게임"}
+                </div>
+                <div style={{ background: "linear-gradient(180deg,#141716,#101212)", border: "1px solid #272d2d", borderRadius: 14, padding: "0 18px" }}>
+                  {loading
+                    ? Array.from({ length: 6 }, (_, i) => <SkeletonTrackedRow key={i} />)
+                    : topGames.length === 0
+                      ? (
+                        <div style={{ padding: "32px 0", textAlign: "center", color: "#5a615d", fontSize: 13 }}>
+                          데이터를 불러오는 중입니다
+                        </div>
+                      )
+                      : topGames.map((item, i) => {
+                        const isLow = item.deal.flag === "H" || item.deal.flag === "N";
+                        return (
+                          <Link
+                            key={item.id}
+                            href={`/game/${item.id}?title=${encodeURIComponent(item.title)}`}
+                            style={{
+                              display: "flex", alignItems: "center", gap: 13, padding: "12px 0",
+                              borderTop: i === 0 ? "none" : "1px solid #1e2222",
+                              textDecoration: "none",
+                            }}
+                          >
+                            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 700, color: "#3d4440", width: 18, textAlign: "center", flexShrink: 0 }}>
+                              {i + 1}
+                            </span>
+                            <div style={{ width: 38, height: 38, borderRadius: 8, overflow: "hidden", background: CAP_XS, flexShrink: 0, border: "1px solid #272d2d" }}>
+                              {item.assets?.boxart && (
+                                <img
+                                  src={item.assets.boxart}
+                                  alt=""
+                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                              )}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                {item.title}
+                              </div>
+                              {isLow && (
+                                <span style={{ fontSize: 9.5, fontWeight: 800, color: "#06120b", background: "#5fd39a", padding: "1px 5px", borderRadius: 4, marginTop: 3, display: "inline-block" }}>
+                                  역대최저
+                                </span>
+                              )}
+                            </div>
+                            <span style={{
+                              fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 700,
+                              color: "#07120b", background: discountColor(item.deal.cut),
+                              padding: "2px 6px", borderRadius: 5, flexShrink: 0,
+                            }}>
+                              -{item.deal.cut}%
+                            </span>
+                            <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 700, color: "#5fd39a", width: 72, textAlign: "right", flexShrink: 0 }}>
+                              {won(item.deal.price.amount)}
+                            </div>
+                          </Link>
+                        );
+                      })
+                  }
+                </div>
+              </div>
+            );
+          })()}
+
 
         </div>
       </div>
