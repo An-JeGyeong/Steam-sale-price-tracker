@@ -24,8 +24,8 @@ const GameSearchResultSchema = z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
-  assets: z.object({ boxart: z.string().optional() }),
-});
+  assets: z.object({ boxart: z.string().optional() }).optional(),
+}).passthrough();
 
 export const GamePriceResultSchema = z.object({
   id: z.string(),

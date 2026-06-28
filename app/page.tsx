@@ -124,28 +124,35 @@ function HeroSearch() {
   const [results, setResults] = useState<GameSearchResult[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
   const router = useRouter();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const doSearch = useCallback(async (q: string) => {
-    if (!q.trim()) { setResults([]); setOpen(false); return; }
+    if (!q.trim()) { setResults([]); setOpen(false); setSearched(false); return; }
     setLoading(true);
+    setOpen(true);
     try {
       const res = await fetch(`/api/search?title=${encodeURIComponent(q)}`);
       if (res.ok) {
         const data: GameSearchResult[] = await res.json();
-        setResults(data.slice(0, 6));
-        setOpen(data.length > 0);
+        setResults(Array.isArray(data) ? data.slice(0, 6) : []);
+      } else {
+        setResults([]);
       }
+    } catch {
+      setResults([]);
     } finally {
       setLoading(false);
+      setSearched(true);
     }
   }, []);
 
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => doSearch(query), 400);
+    if (!query.trim()) { setResults([]); setOpen(false); setSearched(false); return; }
+    timerRef.current = setTimeout(() => doSearch(query), 350);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [query, doSearch]);
 
@@ -160,14 +167,19 @@ function HeroSearch() {
   function pick(game: GameSearchResult) {
     setOpen(false);
     setQuery("");
+    setResults([]);
     router.push(`/game/${game.id}?title=${encodeURIComponent(game.title)}`);
   }
+
+  const showDropdown = open && query.trim().length > 0;
 
   return (
     <div ref={wrapRef} style={{ position: "relative", maxWidth: 560, margin: "26px auto 0" }}>
       <div style={{
         height: 54,
-        background: "#141616", border: "1px solid #2c4135", borderRadius: 14,
+        background: "#141616",
+        border: "1px solid #2c4135",
+        borderRadius: showDropdown ? "14px 14px 0 0" : 14,
         display: "flex", alignItems: "center", gap: 12, padding: "0 18px",
         boxShadow: "0 8px 30px rgba(0,0,0,.3)",
       }}>
@@ -178,54 +190,83 @@ function HeroSearch() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => results.length > 0 && setOpen(true)}
-          onKeyDown={(e) => e.key === "Enter" && results[0] && pick(results[0])}
-          placeholder="게임 이름을 검색하세요"
+          onFocus={() => query.trim() && setOpen(true)}
+          onKeyDown={(e) => { if (e.key === "Enter" && results[0]) pick(results[0]); if (e.key === "Escape") setOpen(false); }}
+          placeholder="게임 이름을 검색하세요 (한글/영어)"
           style={{
             flex: 1, background: "none", border: "none", outline: "none",
             color: "#cfd3d0", fontSize: 15, fontFamily: "'Noto Sans KR',system-ui,sans-serif",
           }}
         />
         <button
-          onClick={() => results[0] && pick(results[0])}
+          onClick={() => { if (query.trim()) doSearch(query); else if (results[0]) pick(results[0]); }}
           style={{
             fontSize: 13, fontWeight: 700, color: "#06120b",
-            background: "#5fd39a", padding: "9px 16px", borderRadius: 10,
-            cursor: "pointer", border: "none", fontFamily: "'Noto Sans KR',system-ui,sans-serif",
+            background: loading ? "#3a8a62" : "#5fd39a",
+            padding: "9px 16px", borderRadius: 10,
+            cursor: "pointer", border: "none",
+            fontFamily: "'Noto Sans KR',system-ui,sans-serif",
+            display: "flex", alignItems: "center", gap: 6,
+            transition: "background .15s",
           }}
         >
-          {loading ? "…" : "검색"}
+          {loading ? (
+            <>
+              <svg width="13" height="13" viewBox="0 0 14 14" style={{ animation: "spin .7s linear infinite" }}>
+                <circle cx="7" cy="7" r="5.5" fill="none" stroke="rgba(6,18,11,.3)" strokeWidth="2" />
+                <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#06120b" strokeWidth="2" strokeLinecap="round" fill="none" />
+              </svg>
+              검색 중
+            </>
+          ) : "검색"}
         </button>
       </div>
-      {open && results.length > 0 && (
+      {showDropdown && (
         <div style={{
-          position: "absolute", top: "calc(100% + 8px)", left: 0, right: 0,
-          background: "#141716", border: "1px solid #2c4135", borderRadius: 12,
+          position: "absolute", top: "100%", left: 0, right: 0,
+          background: "#141716", border: "1px solid #2c4135", borderTop: "none",
+          borderRadius: "0 0 14px 14px",
           zIndex: 50, overflow: "hidden",
           boxShadow: "0 16px 50px rgba(0,0,0,.55)",
         }}>
-          {results.map((g, i) => (
-            <button
-              key={g.id}
-              onClick={() => pick(g)}
-              style={{
-                display: "flex", alignItems: "center", gap: 12,
-                width: "100%", padding: "11px 16px",
-                background: "none", border: "none",
-                borderBottom: i < results.length - 1 ? "1px solid #1e2222" : "none",
-                cursor: "pointer", textAlign: "left",
-                color: "#cfd3d0", fontSize: 14, fontWeight: 600,
-                fontFamily: "'Noto Sans KR',system-ui,sans-serif",
-              }}
-            >
-              {g.assets?.boxart ? (
-                <img src={g.assets.boxart} alt="" style={{ width: 46, height: 32, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              ) : (
-                <span style={{ width: 46, height: 32, borderRadius: 6, background: "#1a1d1d", flexShrink: 0, display: "inline-block" }} />
-              )}
-              {g.title}
-            </button>
-          ))}
+          {loading && results.length === 0 ? (
+            <div style={{ padding: "14px 18px", color: "#7e827f", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" style={{ animation: "spin .7s linear infinite", flexShrink: 0 }}>
+                <circle cx="7" cy="7" r="5.5" fill="none" stroke="#2c4135" strokeWidth="2" />
+                <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#5fd39a" strokeWidth="2" strokeLinecap="round" fill="none" />
+              </svg>
+              검색 중…
+            </div>
+          ) : results.length > 0 ? (
+            results.map((g, i) => (
+              <button
+                key={g.id}
+                onClick={() => pick(g)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  width: "100%", padding: "11px 18px",
+                  background: "none", border: "none",
+                  borderBottom: i < results.length - 1 ? "1px solid #1e2222" : "none",
+                  cursor: "pointer", textAlign: "left",
+                  color: "#cfd3d0", fontSize: 14, fontWeight: 600,
+                  fontFamily: "'Noto Sans KR',system-ui,sans-serif",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(67,194,130,.06)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "none"; }}
+              >
+                {g.assets?.boxart ? (
+                  <img src={g.assets.boxart} alt="" style={{ width: 46, height: 32, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                ) : (
+                  <span style={{ width: 46, height: 32, borderRadius: 6, background: "#1a1d1d", flexShrink: 0, display: "inline-block" }} />
+                )}
+                <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.title}</span>
+              </button>
+            ))
+          ) : searched ? (
+            <div style={{ padding: "14px 18px", color: "#7e827f", fontSize: 13 }}>
+              검색 결과가 없습니다
+            </div>
+          ) : null}
         </div>
       )}
     </div>
