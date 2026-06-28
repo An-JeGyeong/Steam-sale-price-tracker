@@ -317,7 +317,12 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
               src={imgSrc}
               alt=""
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                const fb = appId ? steamHeaderUrl(appId) : null;
+                if (fb && img.src !== fb) { img.src = fb; }
+                else { img.style.display = "none"; }
+              }}
             />
           )}
         </div>
@@ -599,7 +604,12 @@ export default function HomePage() {
                                 src={esrc}
                                 alt=""
                                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                onError={(ev) => { (ev.target as HTMLImageElement).style.display = "none"; }}
+                                onError={(ev) => {
+                                  const img = ev.target as HTMLImageElement;
+                                  const fb = eid ? steamHeaderUrl(eid) : null;
+                                  if (fb && img.src !== fb) { img.src = fb; }
+                                  else { img.style.display = "none"; }
+                                }}
                               />
                             ) : null;
                           })()}
@@ -660,14 +670,23 @@ export default function HomePage() {
                               {i + 1}
                             </span>
                             <div style={{ width: 38, height: 38, borderRadius: 8, overflow: "hidden", background: CAP_XS, flexShrink: 0, border: "1px solid #272d2d" }}>
-                              {item.assets?.boxart && (
-                                <img
-                                  src={item.assets.boxart}
-                                  alt=""
-                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                                />
-                              )}
+                              {(() => {
+                                const aid = steamAppIdFromUrl(item.deal.url);
+                                const src = item.assets?.boxart ?? (aid ? steamHeaderUrl(aid) : null);
+                                return src ? (
+                                  <img
+                                    src={src}
+                                    alt=""
+                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    onError={(e) => {
+                                      const img = e.target as HTMLImageElement;
+                                      const fb = aid ? steamHeaderUrl(aid) : null;
+                                      if (fb && img.src !== fb) { img.src = fb; }
+                                      else { img.style.display = "none"; }
+                                    }}
+                                  />
+                                ) : null;
+                              })()}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 13, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
