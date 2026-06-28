@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json([]);
   }
 
-  const trimmed = title.trim();
+  const trimmed = title.trim().slice(0, 100);
 
   try {
     let searchTitle = trimmed;
@@ -41,8 +41,7 @@ export async function GET(req: NextRequest) {
 
     const results = await searchGames(searchTitle);
     return NextResponse.json(results);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "알 수 없는 오류";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "검색 중 오류가 발생했습니다." }, { status: 500 });
   }
 }

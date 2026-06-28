@@ -213,18 +213,21 @@ export default function Nav() {
                 </svg>
                 찜목록
               </Link>
-              <a
-                href="/api/auth/logout"
-                style={{
-                  display: "flex", alignItems: "center", gap: 7,
-                  fontSize: 12, fontWeight: 600, color: "#7e827f",
-                  background: "#141616", border: "1px solid #272d2d",
-                  padding: "6px 12px", borderRadius: 8, textDecoration: "none",
-                }}
-              >
-                <SteamIcon />
-                로그아웃
-              </a>
+              <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+                <button
+                  type="submit"
+                  style={{
+                    display: "flex", alignItems: "center", gap: 7,
+                    fontSize: 12, fontWeight: 600, color: "#7e827f",
+                    background: "#141616", border: "1px solid #272d2d",
+                    padding: "6px 12px", borderRadius: 8, cursor: "pointer",
+                    fontFamily: "'Noto Sans KR', system-ui, sans-serif",
+                  }}
+                >
+                  <SteamIcon />
+                  로그아웃
+                </button>
+              </form>
             </>
           ) : (
             /* 로그아웃 상태 */

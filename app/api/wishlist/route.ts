@@ -4,7 +4,8 @@ import { lookupByAppId, getPrices } from "@/lib/itad";
 
 export async function GET(req: NextRequest) {
   const steamId = req.cookies.get("steam_id")?.value;
-  if (!steamId) {
+  // Validate that steamId is a 17-digit numeric Steam ID (Steam 64-bit format)
+  if (!steamId || !/^\d{17}$/.test(steamId)) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
 
@@ -34,7 +35,7 @@ export async function GET(req: NextRequest) {
     });
 
     if (matched.length === 0) {
-      return NextResponse.json({ steamId, games: [], total, matched: 0 });
+      return NextResponse.json({ games: [], total, matched: 0 });
     }
 
     // 4. ITAD 가격 일괄 조회
@@ -70,9 +71,12 @@ export async function GET(req: NextRequest) {
       })
       .filter(Boolean);
 
-    return NextResponse.json({ steamId, games, total, matched: matched.length });
+    return NextResponse.json({ games, total, matched: matched.length });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "알 수 없는 오류";
+    // Preserve user-facing wishlist errors (e.g. private wishlist message) but not internal errors
+    const message = err instanceof Error && err.message.includes("위시리스트")
+      ? err.message
+      : "위시리스트 조회 중 오류가 발생했습니다.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

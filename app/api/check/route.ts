@@ -14,7 +14,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "id 파라미터가 필요합니다." }, { status: 400 });
   }
 
-  const country = req.nextUrl.searchParams.get("country") ?? "KR";
+  const countryRaw = req.nextUrl.searchParams.get("country") ?? "KR";
+  // ISO 3166-1 alpha-2: 2 uppercase letters only
+  const country = /^[A-Z]{2}$/.test(countryRaw) ? countryRaw : "KR";
 
   try {
     const [result] = await getPrices([id], country);
@@ -28,8 +30,7 @@ export async function GET(req: NextRequest) {
 
     const response = CheckResultSchema.parse({ bestDeal, historyLow, isAllTimeLow });
     return NextResponse.json(response);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "알 수 없는 오류";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "가격 조회 중 오류가 발생했습니다." }, { status: 500 });
   }
 }
