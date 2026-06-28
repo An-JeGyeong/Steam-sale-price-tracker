@@ -4,6 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "스팀 최저가 트래커",
   description: "지금 이 할인이 역대 최저가인지 바로 확인하세요.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
