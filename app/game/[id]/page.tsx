@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useParams, useSearchParams } from "next/navigation";
 import Nav from "@/components/Nav";
 import PriceChart, { type RawPoint } from "@/components/PriceChart";
+import type { HistoryPoint } from "@/lib/itad";
 
-const RAW: RawPoint[] = [
+/* ── mock chart data (fallback) ── */
+const MOCK_RAW: RawPoint[] = [
   { m: "25.7",  p: 19800, sale: "여름세일", d: 64 },
   { m: "25.8",  p: 55000 },
   { m: "25.9",  p: 38500, sale: "가을한정", d: 30 },
@@ -14,17 +17,17 @@ const RAW: RawPoint[] = [
   { m: "25.12", p: 16500, sale: "겨울세일", d: 70, low: true },
   { m: "26.1",  p: 55000 },
   { m: "26.2",  p: 55000 },
-  { m: "26.3",  p: 27500, sale: "봄세일",   d: 50 },
+  { m: "26.3",  p: 27500, sale: "봄세일",  d: 50 },
   { m: "26.4",  p: 55000 },
   { m: "26.5",  p: 55000 },
   { m: "26.6",  p: 18150, sale: "여름세일", d: 67, cur: true },
 ];
 
 const RECS = [
-  { name: "추천 게임 A", tag: "액션 · 인디",        disc: 80, now: 9900,  old: 49000 },
-  { name: "추천 게임 B", tag: "메트로배니아",         disc: 45, now: 22000, old: 40000 },
-  { name: "추천 게임 C", tag: "액션 · 로그라이크",   disc: 67, now: 13200, old: 39900 },
-  { name: "추천 게임 D", tag: "인디 · 플랫포머",     disc: 30, now: 31500, old: 45000 },
+  { name: "추천 게임 A", tag: "액션 · 인디",       disc: 80, now: 9900,  old: 49000 },
+  { name: "추천 게임 B", tag: "메트로배니아",        disc: 45, now: 22000, old: 40000 },
+  { name: "추천 게임 C", tag: "액션 · 로그라이크",  disc: 67, now: 13200, old: 39900 },
+  { name: "추천 게임 D", tag: "인디 · 플랫포머",    disc: 30, now: 31500, old: 45000 },
 ];
 
 const HERO_BG = "repeating-linear-gradient(45deg,transparent 0 18px,rgba(32,36,34,.5) 18px 36px),linear-gradient(135deg,#1c1f1e,#141716)";
@@ -43,13 +46,104 @@ function fmtCountdown(sec: number): string {
   return `${d}d ${z(h)}:${z(m)}:${z(s)}`;
 }
 
+function historyToRaw(history: HistoryPoint[]): RawPoint[] {
+  if (history.length === 0) return [];
+  const byMonth = new Map<string, { p: number; cut: number }>();
+  for (const h of history) {
+    const date = new Date(h.timestamp);
+    const key = `${String(date.getFullYear()).slice(2)}.${date.getMonth() + 1}`;
+    const cur = byMonth.get(key);
+    if (!cur || h.price.amount < cur.p) {
+      byMonth.set(key, { p: h.price.amount, cut: h.cut });
+    }
+  }
+  const entries = Array.from(byMonth.entries());
+  const minPrice = Math.min(...entries.map(([, v]) => v.p));
+  return entries.map(([m, v], i) => ({
+    m,
+    p: v.p,
+    sale: v.cut > 0 ? "세일" : undefined,
+    d: v.cut > 0 ? v.cut : undefined,
+    low: v.p === minPrice,
+    cur: i === entries.length - 1,
+  }));
+}
+
 export default function GameDetailPage() {
-  const INIT_REMAIN = 1 * 86400 + 14 * 3600 + 22 * 60 + 3;
-  const [remain, setRemain] = useState(INIT_REMAIN);
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const gameId = Array.isArray(params.id) ? params.id[0] : params.id ?? "";
+  const titleParam = searchParams.get("title") ?? "";
+
+  /* price state */
+  const [priceData, setPriceData] = useState<{
+    title: string;
+    now: number;
+    old: number;
+    disc: number;
+    histLow: number | null;
+    isAllTimeLow: boolean;
+    shopUrl: string;
+    expiryTs: string | null;
+  } | null>(null);
+  const [rawPoints, setRawPoints] = useState<RawPoint[]>(MOCK_RAW);
+  const [priceError, setPriceError] = useState(false);
+
+  /* countdown */
+  const [remain, setRemain] = useState(1 * 86400 + 14 * 3600 + 22 * 60 + 3);
   useEffect(() => {
     const iv = setInterval(() => setRemain((r) => Math.max(0, r - 1)), 1000);
     return () => clearInterval(iv);
   }, []);
+
+  /* fetch price data */
+  useEffect(() => {
+    if (!gameId) return;
+    fetch(`/api/check?id=${encodeURIComponent(gameId)}`)
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data) => {
+        const { bestDeal, historyLow, isAllTimeLow } = data;
+        setPriceData({
+          title: titleParam || bestDeal.shop.name,
+          now: bestDeal.price.amount,
+          old: bestDeal.regular.amount,
+          disc: bestDeal.cut,
+          histLow: historyLow?.amount ?? null,
+          isAllTimeLow,
+          shopUrl: bestDeal.url,
+          expiryTs: bestDeal.expiry ?? null,
+        });
+        if (bestDeal.expiry) {
+          const secs = Math.max(0, Math.floor((new Date(bestDeal.expiry).getTime() - Date.now()) / 1000));
+          setRemain(secs);
+        }
+      })
+      .catch(() => setPriceError(true));
+  }, [gameId, titleParam]);
+
+  /* fetch price history */
+  useEffect(() => {
+    if (!gameId) return;
+    fetch(`/api/history?id=${encodeURIComponent(gameId)}`)
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data: HistoryPoint[]) => {
+        const pts = historyToRaw(data);
+        if (pts.length >= 2) setRawPoints(pts);
+      })
+      .catch(() => { /* keep mock */ });
+  }, [gameId]);
+
+  const title = titleParam || priceData?.title || "게임 타이틀";
+  const now   = priceData?.now ?? 18150;
+  const old   = priceData?.old ?? 55000;
+  const disc  = priceData?.disc ?? 67;
+  const histLow = priceData?.histLow ?? rawPoints.reduce((mn, p) => Math.min(mn, p.p), now);
+  const avg   = Math.round(rawPoints.reduce((s, p) => s + p.p, 0) / rawPoints.length);
+  const isLow = priceData?.isAllTimeLow ?? false;
+  const diff  = now - histLow;
+
+  const verdictBg  = isLow ? "#5fd39a"    : priceError ? "#e8705f" : "#5fd39a";
+  const verdictTxt = isLow ? "역대 최저가!" : priceError ? "가격 확인 필요" : "지금 사기 좋은 가격";
 
   const panel = (children: React.ReactNode, style?: React.CSSProperties) => (
     <div style={{
@@ -68,7 +162,7 @@ export default function GameDetailPage() {
 
         {/* breadcrumb */}
         <div style={{ fontSize: 12.5, color: "#7e827f", marginBottom: 16, letterSpacing: 0.2 }}>
-          <Link href="/" style={{ color: "#7e827f" }}>홈</Link> › 액션 › 메트로배니아 › <strong style={{ color: "#cfd3d0", fontWeight: 600 }}>게임 타이틀: 부제목</strong>
+          <Link href="/" style={{ color: "#7e827f" }}>홈</Link> › <strong style={{ color: "#cfd3d0", fontWeight: 600 }}>{title}</strong>
         </div>
 
         {/* hero image */}
@@ -78,19 +172,18 @@ export default function GameDetailPage() {
           </span>
           <div>
             <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: -0.6, color: "#f2f8f4", textShadow: "0 2px 18px rgba(0,0,0,.55)", lineHeight: 1.1 }}>
-              게임 타이틀: 부제목
+              {title}
             </div>
-            <div style={{ fontSize: 14, color: "#abafac", marginTop: 6 }}>개발사 스튜디오 · 2024 · 한국어 지원</div>
+            <div style={{ fontSize: 14, color: "#abafac", marginTop: 6 }}>Steam</div>
           </div>
         </div>
 
         {/* tags */}
         <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14 }}>
-          {["액션", "메트로배니아", "인디"].map((t) => (
-            <span key={t} style={{ fontSize: 11.5, fontWeight: 600, color: "#a3a8a4", background: "#1a1d1d", border: "1px solid #272d2d", padding: "4px 10px", borderRadius: 20 }}>{t}</span>
-          ))}
-          <span style={{ fontSize: 11.5, fontWeight: 600, color: "#a3a8a4", background: "#1a1d1d", border: "1px solid #272d2d", padding: "4px 10px", borderRadius: 20 }}>싱글플레이어</span>
-          <span style={{ fontSize: 11.5, fontWeight: 600, color: "#a3a8a4", background: "#1a1d1d", border: "1px solid #272d2d", padding: "4px 10px", borderRadius: 20 }}>★ 압도적으로 긍정적 (42,118)</span>
+          <span style={{ fontSize: 11.5, fontWeight: 600, color: "#a3a8a4", background: "#1a1d1d", border: "1px solid #272d2d", padding: "4px 10px", borderRadius: 20 }}>Steam</span>
+          {isLow && (
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: "#5fd39a", background: "rgba(67,194,130,.1)", border: "1px solid rgba(67,194,130,.3)", padding: "4px 10px", borderRadius: 20 }}>🏆 역대 최저가</span>
+          )}
         </div>
 
         {/* main grid */}
@@ -101,17 +194,17 @@ export default function GameDetailPage() {
 
             {/* price chart panel */}
             {panel(
-              <PriceChart raw={RAW} historyLow={16500} avg={38000} regular={55000} />
+              <PriceChart raw={rawPoints} historyLow={histLow} avg={avg} regular={old} />
             )}
 
             {/* stats row */}
             {panel(
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
                 {[
-                  { k: "정가",     v: won(55000), g: false, sub: null },
-                  { k: "역대 최저", v: won(16500), g: true,  sub: "2025.12 겨울세일", hl: true },
-                  { k: "평균가",   v: won(38000), g: false, sub: "최근 12개월" },
-                  { k: "현재가",   v: won(18150), g: true,  sub: "역대최저 +10%" },
+                  { k: "정가",     v: won(old),    g: false, sub: null,                   hl: false },
+                  { k: "역대 최저", v: won(histLow), g: true,  sub: "전체 기간",            hl: true  },
+                  { k: "평균가",   v: won(avg),    g: false, sub: "히스토리 기반",          hl: false },
+                  { k: "현재가",   v: won(now),    g: true,  sub: isLow ? "역대 최저!" : `역대최저 +${won(diff)}`, hl: false },
                 ].map(({ k, v, g, sub, hl }) => (
                   <div key={k} style={{
                     background: hl ? "rgba(67,194,130,.07)" : "#121414",
@@ -139,24 +232,16 @@ export default function GameDetailPage() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "#222727", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden" }}>
                 {[
-                  { k: "출시일", v: "2024년 3월 12일" },
-                  { k: "개발사 / 배급사", v: "개발사 스튜디오" },
-                  { k: "장르", v: "액션 · 메트로배니아 · 인디" },
-                  { k: "지원 OS", v: "Windows · macOS · SteamOS" },
+                  { k: "게임 ID",      v: gameId },
+                  { k: "플랫폼",       v: "Steam" },
+                  { k: "현재 최저 가격", v: won(now) },
+                  { k: "정가",         v: won(old) },
                 ].map(({ k, v }) => (
                   <div key={k} style={{ background: "#121414", padding: "13px 15px" }}>
                     <div style={{ fontSize: 11, color: "#828783", fontWeight: 600, marginBottom: 6 }}>{k}</div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "#cfd3d0" }}>{v}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#cfd3d0", wordBreak: "break-all" }}>{v}</div>
                   </div>
                 ))}
-                <div style={{ background: "#121414", padding: "13px 15px", gridColumn: "1 / -1" }}>
-                  <div style={{ fontSize: 11, color: "#828783", fontWeight: 600, marginBottom: 6 }}>한국어 지원</div>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#5fd39a", background: "rgba(67,194,130,.1)", padding: "3px 8px", borderRadius: 6 }}>✓ 인터페이스</span>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#5fd39a", background: "rgba(67,194,130,.1)", padding: "3px 8px", borderRadius: 6 }}>✓ 자막</span>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#7e827f", background: "#1a1d1d", padding: "3px 8px", borderRadius: 6 }}>✕ 음성</span>
-                  </div>
-                </div>
               </div>
             </>)}
 
@@ -201,22 +286,22 @@ export default function GameDetailPage() {
                 <span style={{
                   display: "inline-flex", alignItems: "center", gap: 7,
                   fontSize: 12, fontWeight: 700, color: "#0a120d",
-                  background: "#5fd39a", padding: "5px 11px", borderRadius: 7,
+                  background: verdictBg, padding: "5px 11px", borderRadius: 7,
                 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0a120d" strokeWidth="2.5">
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  지금 사기 좋은 가격
+                  {verdictTxt}
                 </span>
               </div>
 
               <div style={{ padding: 18 }}>
                 {/* price row */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14 }}>
-                  <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 20, fontWeight: 600, color: "#0a120d", background: "#5fd39a", padding: "7px 11px", borderRadius: 9, lineHeight: 1 }}>-67%</span>
+                  <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 20, fontWeight: 600, color: "#0a120d", background: "#5fd39a", padding: "7px 11px", borderRadius: 9, lineHeight: 1 }}>-{disc}%</span>
                   <div>
-                    <div style={{ fontSize: 13, color: "#7e827f", textDecoration: "line-through", fontFamily: "'IBM Plex Mono',monospace" }}>₩55,000</div>
-                    <div style={{ fontSize: 27, fontWeight: 800, color: "#f2f8f4", letterSpacing: -0.5, fontFamily: "'IBM Plex Mono',monospace" }}>₩18,150</div>
+                    <div style={{ fontSize: 13, color: "#7e827f", textDecoration: "line-through", fontFamily: "'IBM Plex Mono',monospace" }}>{won(old)}</div>
+                    <div style={{ fontSize: 27, fontWeight: 800, color: "#f2f8f4", letterSpacing: -0.5, fontFamily: "'IBM Plex Mono',monospace" }}>{won(now)}</div>
                   </div>
                 </div>
 
@@ -229,19 +314,25 @@ export default function GameDetailPage() {
                 </div>
 
                 {/* CTA buttons */}
-                <button style={{
-                  marginTop: 14, width: "100%", height: 46, border: "none", borderRadius: 11,
-                  background: "linear-gradient(135deg,#43c282,#1d7a52)",
-                  color: "#06120b", fontSize: 15, fontWeight: 800, cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  boxShadow: "0 6px 20px rgba(67,194,130,.25)",
-                  fontFamily: "'Pretendard',system-ui,sans-serif",
-                }}>
+                <a
+                  href={priceData?.shopUrl ?? "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    marginTop: 14, width: "100%", height: 46, border: "none", borderRadius: 11,
+                    background: "linear-gradient(135deg,#43c282,#1d7a52)",
+                    color: "#06120b", fontSize: 15, fontWeight: 800, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    boxShadow: "0 6px 20px rgba(67,194,130,.25)",
+                    fontFamily: "'Pretendard',system-ui,sans-serif",
+                    textDecoration: "none",
+                  }}
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06120b" strokeWidth="2.4">
-                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10 21a2 2 0 0 0 4 0" />
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
                   </svg>
-                  가격 알림 설정
-                </button>
+                  Steam에서 구매
+                </a>
                 <button style={{
                   marginTop: 9, width: "100%", height: 42,
                   border: "1px solid #2c4135", borderRadius: 11, background: "#171a1a",
@@ -250,22 +341,19 @@ export default function GameDetailPage() {
                   fontFamily: "'Pretendard',system-ui,sans-serif",
                 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cfd3d0" strokeWidth="2">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10 21a2 2 0 0 0 4 0" />
                   </svg>
-                  위시리스트에 추가
+                  가격 알림 설정
                 </button>
 
                 {/* note */}
                 <div style={{ marginTop: 13, fontSize: 11.5, color: "#8b8f8b", textAlign: "center", lineHeight: 1.5 }}>
-                  현재가는 <strong style={{ color: "#5fd39a" }}>역대 최저가보다 ₩1,650 높습니다</strong><br />
-                  겨울세일(12월)에 더 떨어질 수 있어요
-                </div>
-
-                {/* platforms */}
-                <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 14, borderTop: "1px solid #222727" }}>
-                  {["Windows", "macOS", "SteamOS"].map((p) => (
-                    <span key={p} style={{ fontSize: 11, fontWeight: 600, color: "#828783", background: "#121414", border: "1px solid #272d2d", borderRadius: 6, padding: "5px 10px" }}>{p}</span>
-                  ))}
+                  {isLow
+                    ? <><strong style={{ color: "#5fd39a" }}>역대 최저가입니다!</strong><br />지금이 구매 최적기예요</>
+                    : diff > 0
+                      ? <>현재가는 <strong style={{ color: "#5fd39a" }}>역대 최저가보다 {won(diff)} 높습니다</strong><br />세일 기간을 기다려보세요</>
+                      : "가격 정보를 불러오는 중입니다…"
+                  }
                 </div>
               </div>
             </div>
