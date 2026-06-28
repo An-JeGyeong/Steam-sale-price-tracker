@@ -29,6 +29,27 @@ const HERO_BG = "repeating-linear-gradient(45deg,transparent 0 18px,rgba(32,36,3
 const CAP_BG  = "repeating-linear-gradient(45deg,transparent 0 16px,rgba(32,36,34,.5) 16px 32px),linear-gradient(135deg,#1e211f,#141716)";
 const REC_BG  = "repeating-linear-gradient(45deg,transparent 0 14px,rgba(32,36,34,.6) 14px 28px),linear-gradient(135deg,#1c1f1e,#141716)";
 
+/* ── Steam 리뷰 ── */
+interface ReviewSummary {
+  score: number;
+  totalPositive: number;
+  totalNegative: number;
+  totalReviews: number;
+  positivePercent: number;
+}
+
+const REVIEW_META: Record<number, { label: string; color: string; bg: string; border: string }> = {
+  9: { label: "압도적으로 긍정적", color: "#66c0f4", bg: "rgba(102,192,244,.1)",  border: "rgba(102,192,244,.28)" },
+  8: { label: "매우 긍정적",      color: "#66c0f4", bg: "rgba(102,192,244,.1)",  border: "rgba(102,192,244,.28)" },
+  7: { label: "긍정적",          color: "#66c0f4", bg: "rgba(102,192,244,.08)", border: "rgba(102,192,244,.22)" },
+  6: { label: "대체로 긍정적",    color: "#b5cfe1", bg: "rgba(181,207,225,.08)", border: "rgba(181,207,225,.2)"  },
+  5: { label: "복합적",          color: "#c6d4df", bg: "rgba(198,212,223,.07)", border: "rgba(198,212,223,.2)"  },
+  4: { label: "대체로 부정적",    color: "#e07b5a", bg: "rgba(224,123,90,.1)",   border: "rgba(224,123,90,.28)"  },
+  3: { label: "부정적",          color: "#e84c3d", bg: "rgba(232,76,61,.1)",    border: "rgba(232,76,61,.28)"   },
+  2: { label: "매우 부정적",      color: "#e84c3d", bg: "rgba(232,76,61,.1)",    border: "rgba(232,76,61,.28)"   },
+  1: { label: "압도적으로 부정적", color: "#e84c3d", bg: "rgba(232,76,61,.1)",    border: "rgba(232,76,61,.28)"   },
+};
+
 function won(n: number) { return "₩" + n.toLocaleString("ko-KR"); }
 
 function fmtCountdown(sec: number): string {
@@ -84,6 +105,7 @@ export default function GameDetailPage() {
   const [rawPoints, setRawPoints] = useState<RawPoint[]>(MOCK_RAW);
   const [priceError, setPriceError] = useState(false);
   const [relatedDeals, setRelatedDeals] = useState<DealItem[]>([]);
+  const [reviews, setReviews] = useState<ReviewSummary | null>(null);
 
   /* countdown */
   const [remain, setRemain] = useState(1 * 86400 + 14 * 3600 + 22 * 60 + 3);
@@ -141,6 +163,16 @@ export default function GameDetailPage() {
       .catch(() => {});
   }, [gameId]);
 
+  /* fetch Steam reviews (depends on appId extracted after price loads) */
+  const appId = priceData?.shopUrl ? steamAppIdFromUrl(priceData.shopUrl) : null;
+  useEffect(() => {
+    if (!appId) return;
+    fetch(`/api/steam/reviews?appid=${appId}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((d: ReviewSummary | null) => { if (d && !("error" in d)) setReviews(d); })
+      .catch(() => {});
+  }, [appId]);
+
   const priceLoading = !priceData && !priceError;
   const title = titleParam || priceData?.title || "게임 타이틀";
   const now   = priceData?.now ?? 0;
@@ -154,9 +186,9 @@ export default function GameDetailPage() {
   const verdictBg  = priceLoading ? "#2c4135" : isLow ? "#5fd39a" : priceError ? "#e8705f" : "#5fd39a";
   const verdictTxt = priceLoading ? "가격 불러오는 중…" : isLow ? "역대 최저가!" : priceError ? "가격 확인 필요" : "지금 사기 좋은 가격";
 
-  const appId      = priceData?.shopUrl ? steamAppIdFromUrl(priceData.shopUrl) : null;
   const heroImgUrl = appId ? steamHeroUrl(appId) : null;
   const capImgUrl  = appId ? steamCapsuleUrl(appId) : null;
+  const reviewMeta = reviews ? REVIEW_META[reviews.score] : null;
 
   const panel = (children: React.ReactNode, style?: React.CSSProperties) => (
     <div style={{
@@ -202,10 +234,28 @@ export default function GameDetailPage() {
         </div>
 
         {/* tags */}
-        <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14 }}>
+        <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 14, alignItems: "center" }}>
           <span style={{ fontSize: 11.5, fontWeight: 600, color: "#a3a8a4", background: "#1a1d1d", border: "1px solid #272d2d", padding: "4px 10px", borderRadius: 20 }}>Steam</span>
           {isLow && (
             <span style={{ fontSize: 11.5, fontWeight: 600, color: "#5fd39a", background: "rgba(67,194,130,.1)", border: "1px solid rgba(67,194,130,.3)", padding: "4px 10px", borderRadius: 20 }}>🏆 역대 최저가</span>
+          )}
+          {reviewMeta && reviews && (
+            <span
+              title={`긍정 ${reviews.totalPositive.toLocaleString("ko-KR")}개 / 부정 ${reviews.totalNegative.toLocaleString("ko-KR")}개 / 전체 ${reviews.totalReviews.toLocaleString("ko-KR")}개`}
+              style={{
+                fontSize: 11.5, fontWeight: 600,
+                color: reviewMeta.color, background: reviewMeta.bg,
+                border: `1px solid ${reviewMeta.border}`,
+                padding: "4px 10px", borderRadius: 20,
+                display: "inline-flex", alignItems: "center", gap: 5, cursor: "default",
+              }}
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" />
+              </svg>
+              {reviewMeta.label}
+              <span style={{ opacity: 0.75, fontFamily: "'IBM Plex Mono',monospace" }}>({reviews.positivePercent}%)</span>
+            </span>
           )}
         </div>
 
@@ -416,6 +466,38 @@ export default function GameDetailPage() {
                   </svg>
                   가격 알림 설정
                 </button>
+
+                {/* Steam 리뷰 */}
+                {reviewMeta && reviews && (
+                  <div style={{ marginTop: 14, background: "#0d1512", border: `1px solid ${reviewMeta.border}`, borderRadius: 11, padding: "13px 15px" }}>
+                    <div style={{ fontSize: 11, color: "#7e827f", fontWeight: 600, marginBottom: 8, letterSpacing: 0.3, textTransform: "uppercase", fontFamily: "'IBM Plex Mono',monospace" }}>
+                      Steam 리뷰
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 9 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: reviewMeta.color, display: "flex", alignItems: "center", gap: 6 }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z" />
+                        </svg>
+                        {reviewMeta.label}
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: reviewMeta.color, fontFamily: "'IBM Plex Mono',monospace" }}>
+                        {reviews.positivePercent}%
+                      </span>
+                    </div>
+                    {/* 긍정률 바 */}
+                    <div style={{ height: 5, borderRadius: 3, background: "#1e2222", overflow: "hidden", marginBottom: 8 }}>
+                      <div style={{
+                        height: "100%", borderRadius: 3,
+                        width: `${reviews.positivePercent}%`,
+                        background: reviewMeta.color,
+                        transition: "width .6s ease",
+                      }} />
+                    </div>
+                    <div style={{ fontSize: 11, color: "#5a615d", fontFamily: "'IBM Plex Mono',monospace" }}>
+                      긍정 {reviews.totalPositive.toLocaleString("ko-KR")}개 · 전체 {reviews.totalReviews.toLocaleString("ko-KR")}개
+                    </div>
+                  </div>
+                )}
 
                 {/* note */}
                 <div style={{ marginTop: 13, fontSize: 11.5, color: "#8b8f8b", textAlign: "center", lineHeight: 1.5 }}>
