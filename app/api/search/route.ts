@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   try {
     let searchTitle = trimmed;
 
-    if (hasKorean(trimmed)) {
+    if (hasKorean(trimmed) && trimmed.length >= 2) {
       const translated = await translateKoToEn(trimmed);
       if (translated && translated !== trimmed) {
         searchTitle = translated;

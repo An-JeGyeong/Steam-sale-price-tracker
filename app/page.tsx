@@ -591,14 +591,18 @@ export default function HomePage() {
                         textDecoration: "none",
                       }}>
                         <div style={{ width: 54, height: 54, borderRadius: 9, overflow: "hidden", background: CAP_SM, flexShrink: 0, border: "1px solid #272d2d" }}>
-                          {e.assets?.boxart && (
-                            <img
-                              src={e.assets.boxart}
-                              alt=""
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                              onError={(ev) => { (ev.target as HTMLImageElement).style.display = "none"; }}
-                            />
-                          )}
+                          {(() => {
+                            const eid = steamAppIdFromUrl(e.deal.url);
+                            const esrc = e.assets?.boxart ?? (eid ? steamHeaderUrl(eid) : null);
+                            return esrc ? (
+                              <img
+                                src={esrc}
+                                alt=""
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                onError={(ev) => { (ev.target as HTMLImageElement).style.display = "none"; }}
+                              />
+                            ) : null;
+                          })()}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>

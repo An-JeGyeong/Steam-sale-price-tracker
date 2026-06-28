@@ -21,7 +21,6 @@ interface Props {
 type Range = "3M" | "6M" | "1Y" | "전체";
 
 const W = 760, H = 300, L = 56, R = 740, T = 36, B = 250;
-const PMIN = 10000, PMAX = 60000;
 
 function fmt(n: number) {
   return "₩" + n.toLocaleString("ko-KR");
@@ -36,9 +35,17 @@ export default function PriceChart({ raw, historyLow, avg, regular }: Props) {
   const start = raw.length - n;
   const data = raw.map((d, i) => ({ ...d, gi: i })).slice(start);
 
+  // Dynamic Y-axis range derived from data + reference lines
+  const allPrices = [...data.map((d) => d.p), historyLow, avg, regular].filter(Boolean) as number[];
+  const dataMin = allPrices.length > 0 ? Math.min(...allPrices) : 0;
+  const dataMax = allPrices.length > 0 ? Math.max(...allPrices) : 10000;
+  const pad = Math.max((dataMax - dataMin) * 0.18, dataMax * 0.05);
+  const PMIN = Math.max(0, Math.floor((dataMin - pad) / 500) * 500);
+  const PMAX = Math.ceil((dataMax + pad) / 500) * 500;
+
   const xCoord = (i: number) =>
     data.length === 1 ? (L + R) / 2 : L + i * ((R - L) / (data.length - 1));
-  const yCoord = (p: number) => B - ((p - PMIN) / (PMAX - PMIN)) * (B - T);
+  const yCoord = (p: number) => B - ((p - PMIN) / (PMAX - PMIN || 1)) * (B - T);
 
   const pts = data.map((d, i) => `${xCoord(i)},${yCoord(d.p)}`).join(" ");
   const area = `${xCoord(0)},${B} ${pts} ${xCoord(data.length - 1)},${B}`;

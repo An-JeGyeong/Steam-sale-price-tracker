@@ -141,17 +141,18 @@ export default function GameDetailPage() {
       .catch(() => {});
   }, [gameId]);
 
+  const priceLoading = !priceData && !priceError;
   const title = titleParam || priceData?.title || "게임 타이틀";
-  const now   = priceData?.now ?? 18150;
-  const old   = priceData?.old ?? 55000;
-  const disc  = priceData?.disc ?? 67;
-  const histLow = priceData?.histLow ?? rawPoints.reduce((mn, p) => Math.min(mn, p.p), now);
-  const avg   = Math.round(rawPoints.reduce((s, p) => s + p.p, 0) / rawPoints.length);
+  const now   = priceData?.now ?? 0;
+  const old   = priceData?.old ?? 0;
+  const disc  = priceData?.disc ?? 0;
+  const histLow = priceData?.histLow ?? (rawPoints.length > 0 ? Math.min(...rawPoints.map((p) => p.p)) : 0);
+  const avg   = rawPoints.length > 0 ? Math.round(rawPoints.reduce((s, p) => s + p.p, 0) / rawPoints.length) : 0;
   const isLow = priceData?.isAllTimeLow ?? false;
   const diff  = now - histLow;
 
-  const verdictBg  = isLow ? "#5fd39a"    : priceError ? "#e8705f" : "#5fd39a";
-  const verdictTxt = isLow ? "역대 최저가!" : priceError ? "가격 확인 필요" : "지금 사기 좋은 가격";
+  const verdictBg  = priceLoading ? "#2c4135" : isLow ? "#5fd39a" : priceError ? "#e8705f" : "#5fd39a";
+  const verdictTxt = priceLoading ? "가격 불러오는 중…" : isLow ? "역대 최저가!" : priceError ? "가격 확인 필요" : "지금 사기 좋은 가격";
 
   const appId      = priceData?.shopUrl ? steamAppIdFromUrl(priceData.shopUrl) : null;
   const heroImgUrl = appId ? steamHeroUrl(appId) : null;
@@ -222,22 +223,31 @@ export default function GameDetailPage() {
             {/* stats row */}
             {panel(
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-                {[
-                  { k: "정가",     v: won(old),    g: false, sub: null,                   hl: false },
-                  { k: "역대 최저", v: won(histLow), g: true,  sub: "전체 기간",            hl: true  },
-                  { k: "평균가",   v: won(avg),    g: false, sub: "히스토리 기반",          hl: false },
-                  { k: "현재가",   v: won(now),    g: true,  sub: isLow ? "역대 최저!" : `역대최저 +${won(diff)}`, hl: false },
-                ].map(({ k, v, g, sub, hl }) => (
-                  <div key={k} style={{
-                    background: hl ? "rgba(67,194,130,.07)" : "#121414",
-                    border: `1px solid ${hl ? "rgba(67,194,130,.4)" : "#272d2d"}`,
-                    borderRadius: 12, padding: "13px 14px",
-                  }}>
-                    <div style={{ fontSize: 11, color: "#828783", fontWeight: 600, marginBottom: 7 }}>{k}</div>
-                    <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: -0.3, color: g ? "#5fd39a" : "#cfd3d0", fontFamily: "'IBM Plex Mono',monospace" }}>{v}</div>
-                    {sub && <div style={{ fontSize: 10.5, color: "#7e827f", marginTop: 4 }}>{sub}</div>}
-                  </div>
-                ))}
+                {priceLoading ? (
+                  Array.from({ length: 4 }, (_, i) => (
+                    <div key={i} style={{ background: "#121414", border: "1px solid #272d2d", borderRadius: 12, padding: "13px 14px" }}>
+                      <div style={{ height: 10, width: "55%", borderRadius: 4, background: "#1e2222", marginBottom: 10 }} />
+                      <div style={{ height: 20, width: "80%", borderRadius: 5, background: "#1e2a22", animation: "pulse 1.4s ease-in-out infinite" }} />
+                    </div>
+                  ))
+                ) : (
+                  [
+                    { k: "정가",     v: won(old),    g: false, sub: null,                   hl: false },
+                    { k: "역대 최저", v: histLow > 0 ? won(histLow) : "—", g: true, sub: "전체 기간", hl: true },
+                    { k: "평균가",   v: avg > 0 ? won(avg) : "—", g: false, sub: "히스토리 기반", hl: false },
+                    { k: "현재가",   v: won(now),    g: true,  sub: isLow ? "역대 최저!" : diff > 0 ? `역대최저 +${won(diff)}` : null, hl: false },
+                  ].map(({ k, v, g, sub, hl }) => (
+                    <div key={k} style={{
+                      background: hl ? "rgba(67,194,130,.07)" : "#121414",
+                      border: `1px solid ${hl ? "rgba(67,194,130,.4)" : "#272d2d"}`,
+                      borderRadius: 12, padding: "13px 14px",
+                    }}>
+                      <div style={{ fontSize: 11, color: "#828783", fontWeight: 600, marginBottom: 7 }}>{k}</div>
+                      <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: -0.3, color: g ? "#5fd39a" : "#cfd3d0", fontFamily: "'IBM Plex Mono',monospace" }}>{v}</div>
+                      {sub && <div style={{ fontSize: 10.5, color: "#7e827f", marginTop: 4 }}>{sub}</div>}
+                    </div>
+                  ))
+                )}
               </div>,
               { padding: "16px 20px" }
             )}
@@ -340,11 +350,17 @@ export default function GameDetailPage() {
               <div style={{ padding: 18 }}>
                 {/* price row */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 14 }}>
-                  <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 20, fontWeight: 600, color: "#0a120d", background: "#5fd39a", padding: "7px 11px", borderRadius: 9, lineHeight: 1 }}>-{disc}%</span>
-                  <div>
-                    <div style={{ fontSize: 13, color: "#7e827f", textDecoration: "line-through", fontFamily: "'IBM Plex Mono',monospace" }}>{won(old)}</div>
-                    <div style={{ fontSize: 27, fontWeight: 800, color: "#f2f8f4", letterSpacing: -0.5, fontFamily: "'IBM Plex Mono',monospace" }}>{won(now)}</div>
-                  </div>
+                  {priceLoading ? (
+                    <div style={{ height: 44, flex: 1, borderRadius: 9, background: "#1e2222", animation: "pulse 1.4s ease-in-out infinite" }} />
+                  ) : (
+                    <>
+                      <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 20, fontWeight: 600, color: "#0a120d", background: "#5fd39a", padding: "7px 11px", borderRadius: 9, lineHeight: 1 }}>-{disc}%</span>
+                      <div>
+                        <div style={{ fontSize: 13, color: "#7e827f", textDecoration: "line-through", fontFamily: "'IBM Plex Mono',monospace" }}>{won(old)}</div>
+                        <div style={{ fontSize: 27, fontWeight: 800, color: "#f2f8f4", letterSpacing: -0.5, fontFamily: "'IBM Plex Mono',monospace" }}>{won(now)}</div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* countdown */}
@@ -356,25 +372,38 @@ export default function GameDetailPage() {
                 </div>
 
                 {/* CTA buttons */}
-                <a
-                  href={priceData?.shopUrl ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    marginTop: 14, width: "100%", height: 46, border: "none", borderRadius: 11,
-                    background: "linear-gradient(135deg,#43c282,#1d7a52)",
-                    color: "#06120b", fontSize: 15, fontWeight: 800, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    boxShadow: "0 6px 20px rgba(67,194,130,.25)",
+                {priceData?.shopUrl ? (
+                  <a
+                    href={priceData.shopUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      marginTop: 14, width: "100%", height: 46, border: "none", borderRadius: 11,
+                      background: "linear-gradient(135deg,#43c282,#1d7a52)",
+                      color: "#06120b", fontSize: 15, fontWeight: 800, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      boxShadow: "0 6px 20px rgba(67,194,130,.25)",
+                      fontFamily: "'Noto Sans KR',system-ui,sans-serif",
+                      textDecoration: "none",
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06120b" strokeWidth="2.4">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                    Steam에서 구매
+                  </a>
+                ) : (
+                  <div style={{
+                    marginTop: 14, width: "100%", height: 46, borderRadius: 11,
+                    background: priceError ? "rgba(232,112,95,.15)" : "#1a2420",
+                    border: `1px solid ${priceError ? "rgba(232,112,95,.3)" : "#2c4135"}`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: priceError ? "#e8705f" : "#5a7165", fontSize: 13, fontWeight: 600,
                     fontFamily: "'Noto Sans KR',system-ui,sans-serif",
-                    textDecoration: "none",
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06120b" strokeWidth="2.4">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                  Steam에서 구매
-                </a>
+                  }}>
+                    {priceError ? "가격 정보 없음" : "가격 불러오는 중…"}
+                  </div>
+                )}
                 <button style={{
                   marginTop: 9, width: "100%", height: 42,
                   border: "1px solid #2c4135", borderRadius: 11, background: "#171a1a",
