@@ -143,7 +143,7 @@ export default function PriceChart({ raw, historyLow, avg, regular }: Props) {
               <line x1={hx} x2={hx} y1={T} y2={B} stroke="#43c282" strokeWidth={1} strokeDasharray="3 3" opacity={0.5} />
               <circle cx={hx} cy={hy} r={5.5} fill="#fff" stroke="#43c282" strokeWidth={2.5} />
               <rect x={tx} y={ty} width={tw} height={th} rx={8} fill="#06120b" stroke="#28402f" />
-              <text x={tx + 12} y={ty + 17} style={{ font: "600 11px 'Pretendard'", fill: "#a3a8a4" }}>
+              <text x={tx + 12} y={ty + 17} style={{ font: "600 11px 'Noto Sans KR'", fill: "#a3a8a4" }}>
                 {hd.m.replace(".", " / ")}월
               </text>
               <text x={tx + 12} y={ty + 37} style={{ font: "700 14px 'IBM Plex Mono'", fill: hd.sale ? "#5fd39a" : "#cdd6d2" }}>

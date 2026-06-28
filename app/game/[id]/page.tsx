@@ -339,7 +339,7 @@ export default function GameDetailPage() {
                     color: "#06120b", fontSize: 15, fontWeight: 800, cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     boxShadow: "0 6px 20px rgba(67,194,130,.25)",
-                    fontFamily: "'Pretendard',system-ui,sans-serif",
+                    fontFamily: "'Noto Sans KR',system-ui,sans-serif",
                     textDecoration: "none",
                   }}
                 >
@@ -353,7 +353,7 @@ export default function GameDetailPage() {
                   border: "1px solid #2c4135", borderRadius: 11, background: "#171a1a",
                   color: "#cfd3d0", fontSize: 14, fontWeight: 600, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  fontFamily: "'Pretendard',system-ui,sans-serif",
+                  fontFamily: "'Noto Sans KR',system-ui,sans-serif",
                 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cfd3d0" strokeWidth="2">
                     <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10 21a2 2 0 0 0 4 0" />

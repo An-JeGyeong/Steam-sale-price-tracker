@@ -180,7 +180,7 @@ function HeroSearch() {
           placeholder="게임 이름을 검색하세요"
           style={{
             flex: 1, background: "none", border: "none", outline: "none",
-            color: "#cfd3d0", fontSize: 15, fontFamily: "'Pretendard',system-ui,sans-serif",
+            color: "#cfd3d0", fontSize: 15, fontFamily: "'Noto Sans KR',system-ui,sans-serif",
           }}
         />
         <button
@@ -188,7 +188,7 @@ function HeroSearch() {
           style={{
             fontSize: 13, fontWeight: 700, color: "#06120b",
             background: "#5fd39a", padding: "9px 16px", borderRadius: 10,
-            cursor: "pointer", border: "none", fontFamily: "'Pretendard',system-ui,sans-serif",
+            cursor: "pointer", border: "none", fontFamily: "'Noto Sans KR',system-ui,sans-serif",
           }}
         >
           {loading ? "…" : "검색"}
@@ -212,7 +212,7 @@ function HeroSearch() {
                 borderBottom: i < results.length - 1 ? "1px solid #1e2222" : "none",
                 cursor: "pointer", textAlign: "left",
                 color: "#cfd3d0", fontSize: 14, fontWeight: 600,
-                fontFamily: "'Pretendard',system-ui,sans-serif",
+                fontFamily: "'Noto Sans KR',system-ui,sans-serif",
               }}
             >
               {g.assets?.boxart ? (

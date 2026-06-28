@@ -23,7 +23,7 @@
 }
 
 @theme inline {
-  --font-sans: 'Pretendard', system-ui, sans-serif;
+  --font-sans: 'Noto Sans KR', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
 }
 
@@ -34,7 +34,7 @@ body {
   min-height: 100vh;
   background: linear-gradient(180deg, #0e100f 0%, #0b0c0c 60%, #0b0c0c 100%);
   color: var(--c-text-body);
-  font-family: 'Pretendard', system-ui, sans-serif;
+  font-family: 'Noto Sans KR', system-ui, sans-serif;
   padding-bottom: 90px;
 }
 
