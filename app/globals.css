@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --c-bg-panel: #141716;
+  --c-bg-nested: #121414;
+  --c-bg-input: #141616;
+  --c-border: #272d2d;
+  --c-border-div: #1e2222;
+  --c-border-div2: #222727;
+  --c-border-green: #2c4135;
+  --c-text-title: #f2f8f4;
+  --c-text-head: #eef6f0;
+  --c-text-body: #cdd6d2;
+  --c-text-body2: #cfd3d0;
+  --c-text-sub: #a3a8a4;
+  --c-text-muted: #7e827f;
+  --c-text-muted2: #828783;
+  --c-green: #5fd39a;
+  --c-green-chart: #43c282;
+  --c-green-bg: #0a120d;
+  --c-amber: #ffb454;
+  --c-red: #e8705f;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Pretendard', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { box-sizing: border-box; }
+a { text-decoration: none; color: inherit; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0e100f 0%, #0b0c0c 60%, #0b0c0c 100%);
+  color: var(--c-text-body);
+  font-family: 'Pretendard', system-ui, sans-serif;
+  padding-bottom: 90px;
 }
+
+.dcard:hover { border-color: #2c4135 !important; transform: translateY(-2px); }
+.reccard:hover { border-color: #2c4135 !important; }
+.smore:hover { color: var(--c-green) !important; }
