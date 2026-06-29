@@ -88,9 +88,9 @@ export function steamAppIdFromUrl(url: string): string | null {
   const m = url.match(/store\.steampowered\.com\/app\/(\d+)/);
   return m ? m[1] : null;
 }
-export const steamHeaderUrl  = (id: string) => `https://cdn.akamai.steamstatic.com/steam/apps/${id}/header.jpg`;
-export const steamHeroUrl    = (id: string) => `https://cdn.akamai.steamstatic.com/steam/apps/${id}/library_hero.jpg`;
-export const steamCapsuleUrl = (id: string) => `https://cdn.akamai.steamstatic.com/steam/apps/${id}/capsule_616x353.jpg`;
+export const steamHeaderUrl  = (id: string) => `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/header.jpg`;
+export const steamHeroUrl    = (id: string) => `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/library_hero.jpg`;
+export const steamCapsuleUrl = (id: string) => `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/capsule_616x353.jpg`;
 
 function getApiKey(): string {
   const key = process.env.ITAD_API_KEY;

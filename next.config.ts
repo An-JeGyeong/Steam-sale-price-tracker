@@ -15,7 +15,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Game image CDNs: wildcard covers all Steam subdomains (incl. new shared.fastly.*),
       // IGDB (used by ITAD for boxart), and other game store CDNs
-      "img-src 'self' data: https://*.steamstatic.com https://cdn.akamai.steamstatic.com https://cdn.cloudflare.steamstatic.com https://shared.akamai.steamstatic.com https://shared.cloudflare.steamstatic.com https://*.steampowered.com https://*.akamaihd.net https://images.igdb.com https://isthereanydeal.com https://cdn.isthereanydeal.com https://steamcommunity.com",
+      "img-src 'self' data: https:",
       // Our own API routes + external APIs called client-side (none — all fetches are server-side)
       "connect-src 'self'",
       // Scripts: Next.js requires 'unsafe-inline' + 'unsafe-eval' in dev; in prod only self
