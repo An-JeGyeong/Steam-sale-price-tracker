@@ -532,19 +532,32 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/deals?limit=8&sort=expiry")
+    fetch("/api/deals?limit=20&sort=expiry")
       .then(async (r) => {
         const data = await r.json();
         if (!r.ok || data?.error) throw new Error();
         return data as DealItem[];
       })
       .then((data) => {
-        const withExpiry = (Array.isArray(data) ? data : []).filter((d) => d.deal.expiry);
-        setEndingDeals(withExpiry.slice(0, 4));
+        const now = Date.now();
+        // 만료 기한이 미래인 딜만 — 과거 만료 데이터는 제외
+        const future = (Array.isArray(data) ? data : []).filter(
+          (d) => d.deal.expiry && new Date(d.deal.expiry).getTime() > now
+        );
+        setEndingDeals(future.slice(0, 4));
         setEndingLoading(false);
       })
       .catch(() => setEndingLoading(false));
   }, []);
+
+  // expiry-sort API가 만료된 데이터만 반환할 때 rawDeals에서 fallback
+  const now = Date.now();
+  const displayEndingDeals = endingDeals.length > 0
+    ? endingDeals
+    : rawDeals
+        .filter((d) => d.deal.expiry && new Date(d.deal.expiry).getTime() > now)
+        .sort((a, b) => new Date(a.deal.expiry!).getTime() - new Date(b.deal.expiry!).getTime())
+        .slice(0, 4);
 
   return (
     <div>
@@ -766,15 +779,15 @@ export default function HomePage() {
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
-              {endingLoading
+              {(endingLoading && !loading)
                 ? Array.from({ length: 4 }, (_, i) => <SkeletonEndingCard key={i} />)
-                : endingDeals.length === 0
+                : displayEndingDeals.length === 0
                   ? (
                     <div style={{ gridColumn: "1/-1", padding: "28px 0", textAlign: "center", color: "#5a615d", fontSize: 13 }}>
                       현재 마감 임박 세일이 없습니다
                     </div>
                   )
-                  : endingDeals.map((e) => {
+                  : displayEndingDeals.map((e) => {
                     const r = remainSec(e.deal.expiry);
                     void tick;
                     return (
