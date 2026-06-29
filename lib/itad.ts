@@ -164,8 +164,7 @@ export async function getPriceHistory(gameId: string, country = "KR"): Promise<H
 export async function lookupByAppId(appId: number): Promise<GameLookup | null> {
   const url = new URL(`${BASE_URL}/games/lookup/v1`);
   url.searchParams.set("key", getApiKey());
-  url.searchParams.set("shop", "steam");
-  url.searchParams.set("game_id", String(appId));
+  url.searchParams.set("appid", String(appId));
 
   const res = await fetch(url.toString(), { next: { revalidate: 86400 } });
   if (res.status === 404) return null;
