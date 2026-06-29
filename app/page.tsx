@@ -7,6 +7,12 @@ import Nav from "@/components/Nav";
 import type { GameSearchResult, DealItem } from "@/lib/itad";
 import { steamAppIdFromUrl, steamHeaderUrl, steamCapsuleUrl } from "@/lib/itad";
 
+interface WishSaleGame {
+  appId: number; title: string; capsule?: string; itadId: string;
+  now: number; old: number; disc: number; histLow: number | null;
+  isAllTimeLow: boolean; onSale: boolean; shopUrl: string;
+}
+
 /* ── helpers ── */
 function won(n: number) { return "₩" + n.toLocaleString("ko-KR"); }
 
@@ -450,10 +456,28 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [endingDeals, setEndingDeals] = useState<DealItem[]>([]);
   const [endingLoading, setEndingLoading] = useState(true);
+  const [wishSale, setWishSale] = useState<WishSaleGame[]>([]);
+  const [wishLoading, setWishLoading] = useState(false);
 
   useEffect(() => {
     const iv = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(iv);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d: { loggedIn: boolean }) => {
+        if (!d.loggedIn) return;
+        setWishLoading(true);
+        return fetch("/api/wishlist")
+          .then((r) => r.json())
+          .then((data: { games?: WishSaleGame[]; error?: string }) => {
+            if (!data.error) setWishSale((data.games ?? []).filter((g) => g.onSale));
+          })
+          .finally(() => setWishLoading(false));
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -531,6 +555,70 @@ export default function HomePage() {
           })()}
           <HeroSearch />
         </div>
+
+        {/* ─── 찜목록 할인 중 ─── */}
+        {(wishLoading || wishSale.length > 0) && (
+          <div style={{ marginBottom: 40 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#e8705f" stroke="none">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              내 찜목록 할인 중
+              <span style={{ fontSize: 12, fontWeight: 500, color: "#7e827f" }}>({wishSale.length}개)</span>
+            </div>
+            <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4 }}>
+              {wishLoading
+                ? Array.from({ length: 4 }, (_, i) => (
+                    <div key={i} style={{ flexShrink: 0, width: 180, background: "#141716", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden" }}>
+                      <div style={{ height: 90, background: "repeating-linear-gradient(45deg,transparent 0 12px,rgba(32,36,34,.55) 12px 24px),linear-gradient(135deg,#1c1f1e,#141716)" }} />
+                      <div style={{ padding: "11px 13px" }}>
+                        <div style={{ height: 13, borderRadius: 5, background: "#1e2222", width: "70%", marginBottom: 8 }} />
+                        <div style={{ height: 18, borderRadius: 5, background: "#1e2a22", width: "50%" }} />
+                      </div>
+                    </div>
+                  ))
+                : wishSale.map((g) => {
+                    const imgSrc = g.capsule
+                      ?? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.appId}/header.jpg`;
+                    return (
+                      <Link
+                        key={g.appId}
+                        href={`/game/${g.itadId}?title=${encodeURIComponent(g.title)}`}
+                        style={{ flexShrink: 0, width: 180, background: "#141716", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden", textDecoration: "none" }}
+                      >
+                        <div style={{ height: 90, background: "#1a1d1d", overflow: "hidden", position: "relative" }}>
+                          <img src={imgSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                          <span style={{
+                            position: "absolute", top: 7, right: 7,
+                            fontSize: 11, fontWeight: 800, color: "#07120b",
+                            background: "#5fd39a", padding: "2px 7px", borderRadius: 5,
+                            fontFamily: "'IBM Plex Mono',monospace",
+                          }}>-{g.disc}%</span>
+                          {g.isAllTimeLow && (
+                            <span style={{
+                              position: "absolute", top: 7, left: 7,
+                              fontSize: 9.5, fontWeight: 800, color: "#06120b",
+                              background: "#ffb454", padding: "2px 6px", borderRadius: 4,
+                            }}>역대최저</span>
+                          )}
+                        </div>
+                        <div style={{ padding: "10px 12px" }}>
+                          <div style={{ fontSize: 12.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 5 }}>
+                            {g.title}
+                          </div>
+                          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 14, fontWeight: 700, color: "#5fd39a" }}>{won(g.now)}</span>
+                            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, color: "#4a504d", textDecoration: "line-through" }}>{won(g.old)}</span>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })
+              }
+            </div>
+          </div>
+        )}
 
         {/* ─── 할인 중인 게임 (SteamDB-style table) ─── */}
         <div style={{ margin: "42px 0 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>

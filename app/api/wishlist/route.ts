@@ -73,10 +73,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ games, total, matched: matched.length });
   } catch (err) {
-    // Preserve user-facing wishlist errors (e.g. private wishlist message) but not internal errors
-    const message = err instanceof Error && err.message.includes("위시리스트")
-      ? err.message
-      : "위시리스트 조회 중 오류가 발생했습니다.";
+    const rawMsg = err instanceof Error ? err.message : String(err);
+    const message = rawMsg.includes("위시리스트") ? rawMsg : `위시리스트 조회 실패: ${rawMsg}`;
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
