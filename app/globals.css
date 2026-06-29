@@ -57,3 +57,23 @@ body {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+/* Nav CSS 클래스 (인라인 스타일 대신 사용) */
+nav.site-nav {
+  background: rgba(13, 15, 14, .86);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid #222727;
+  transition: background .25s, border-color .25s;
+}
+
+/* 라이트 모드 */
+[data-theme="light"] body {
+  background: linear-gradient(180deg, #f2f5f3 0%, #eaeeec 100%) !important;
+  color: #1a2a1e !important;
+}
+
+[data-theme="light"] nav.site-nav {
+  background: rgba(245, 252, 248, .96) !important;
+  border-bottom-color: #c8d8cc !important;
+}

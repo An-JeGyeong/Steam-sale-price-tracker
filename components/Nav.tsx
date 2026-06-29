@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { GameSearchResult } from "@/lib/itad";
+import { useTheme } from "@/app/theme-provider";
 
 const SearchIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7e827f" strokeWidth="2">
@@ -156,6 +157,7 @@ interface SteamProfile { name: string; avatar: string }
 
 export default function Nav() {
   const [profile, setProfile] = useState<SteamProfile | null>(null);
+  const { theme, toggle } = useTheme();
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -169,12 +171,10 @@ export default function Nav() {
   }, []);
 
   return (
-    <nav style={{
-      position: "sticky", top: 0, zIndex: 30,
-      background: "rgba(13,15,14,.86)",
-      backdropFilter: "blur(12px)",
-      borderBottom: "1px solid #222727",
-    }}>
+    <nav
+      className="site-nav"
+      style={{ position: "sticky", top: 0, zIndex: 30 }}
+    >
       <div style={{
         maxWidth: 1180, margin: "0 auto", height: 60,
         padding: "0 22px", display: "flex", alignItems: "center", gap: 18,
@@ -201,33 +201,54 @@ export default function Nav() {
           marginLeft: "auto",
         }}>
           <Link href="/" style={{ fontSize: 14, fontWeight: 600, color: "#a3a8a4", textDecoration: "none" }}>핫딜</Link>
+          <Link href="/sales" style={{ fontSize: 14, fontWeight: 600, color: "#a3a8a4", textDecoration: "none" }}>세일 일정</Link>
 
           {profile ? (
             /* 로그인 상태 */
             <>
-              {/* 프로필 */}
-              <Link href="/wishlist" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-                <div style={{
-                  width: 30, height: 30, borderRadius: 8, overflow: "hidden", flexShrink: 0,
-                  background: "#1e2424", border: "1.5px solid rgba(67,194,130,.35)",
-                }}>
-                  {profile.avatar ? (
-                    <img
-                      src={profile.avatar}
-                      alt={profile.name}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                    />
-                  ) : (
-                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#5fd39a" }}>
-                      {profile.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+              {/* 프로필 아바타 (테마 토글) + 이름 */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  onClick={toggle}
+                  aria-label="테마 변경"
+                  style={{
+                    position: "relative",
+                    background: "none", border: "none", cursor: "pointer", padding: 0,
+                    flexShrink: 0,
+                  }}
+                >
+                  <div style={{
+                    width: 30, height: 30, borderRadius: 8, overflow: "hidden",
+                    background: "#1e2424", border: "1.5px solid rgba(67,194,130,.35)",
+                  }}>
+                    {profile.avatar ? (
+                      <img
+                        src={profile.avatar}
+                        alt={profile.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#5fd39a" }}>
+                        {profile.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  {/* 테마 오버레이 아이콘 */}
+                  <span style={{
+                    position: "absolute", bottom: -2, right: -2,
+                    width: 12, height: 12, borderRadius: "50%",
+                    background: "#141716", border: "1px solid #272d2d",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 7, lineHeight: "1", pointerEvents: "none",
+                  }}>
+                    {theme === "dark" ? "🌙" : "☀️"}
+                  </span>
+                </button>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#e6ebe8", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {profile.name}
                 </span>
-              </Link>
+              </div>
 
               {/* 찜목록 */}
               <Link
@@ -261,18 +282,34 @@ export default function Nav() {
             </>
           ) : (
             /* 로그아웃 상태 */
-            <a
-              href="/api/auth/steam"
-              style={{
-                display: "flex", alignItems: "center", gap: 7,
-                fontSize: 13, fontWeight: 700, color: "#c7d5e0",
-                background: "#1b2838", border: "1px solid #2a475e",
-                padding: "7px 14px", borderRadius: 8, textDecoration: "none",
-              }}
-            >
-              <SteamIcon />
-              Steam 로그인
-            </a>
+            <>
+              {/* 테마 토글 버튼 */}
+              <button
+                onClick={toggle}
+                aria-label="테마 변경"
+                style={{
+                  width: 32, height: 32,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "#141616", border: "1px solid #272d2d",
+                  borderRadius: 8, cursor: "pointer", fontSize: 16,
+                  flexShrink: 0,
+                }}
+              >
+                {theme === "dark" ? "☀️" : "🌙"}
+              </button>
+              <a
+                href="/api/auth/steam"
+                style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  fontSize: 13, fontWeight: 700, color: "#c7d5e0",
+                  background: "#1b2838", border: "1px solid #2a475e",
+                  padding: "7px 14px", borderRadius: 8, textDecoration: "none",
+                }}
+              >
+                <SteamIcon />
+                Steam 로그인
+              </a>
+            </>
           )}
         </div>
       </div>
