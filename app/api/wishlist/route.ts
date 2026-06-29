@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       if (res.status === "fulfilled" && res.value) {
         matched.push({
           appId: batch[i].appId,
-          title: batch[i].title,
+          title: res.value.title || batch[i].title,
           capsule: batch[i].capsule,
           itadId: res.value.id,
         });
