@@ -45,8 +45,15 @@ export async function fetchSteamWishlist(steamId: string): Promise<SteamWishGame
   const apiKey = process.env.STEAM_API_KEY;
   if (!apiKey) throw new Error("위시리스트 기능을 사용하려면 STEAM_API_KEY 환경변수가 필요합니다.");
 
+  // Key must go in the query string (Steam API requirement).
+  // Wrap fetch so the key is never present in propagated error messages.
   const url = `https://api.steampowered.com/IWishlistService/GetWishlist/v1/?key=${apiKey}&steamid=${steamId}`;
-  const res = await fetch(url, { cache: "no-store" });
+  let res: Response;
+  try {
+    res = await fetch(url, { cache: "no-store" });
+  } catch {
+    throw new Error("위시리스트 Steam API 요청 실패 (네트워크 오류)");
+  }
 
   if (!res.ok) {
     if (res.status === 500) {
