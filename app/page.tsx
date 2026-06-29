@@ -763,6 +763,18 @@ export default function HomePage() {
                   ));
                 })()
           }
+          <Link href="/deals" style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+            padding: "13px", borderTop: "1px solid #1a1e1d",
+            fontSize: 13, fontWeight: 700, color: "#5fd39a",
+            textDecoration: "none", background: "transparent",
+            transition: "background .12s",
+          }}>
+            더 많은 할인 게임 보기
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
 
         {/* split */}

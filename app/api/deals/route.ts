@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const sortRaw = req.nextUrl.searchParams.get("sort") ?? "-cut";
   const sort = VALID_SORTS.has(sortRaw) ? sortRaw : "-cut";
   try {
-    const deals = await getDeals(Math.min(limit, 20), "KR", sort);
+    const deals = await getDeals(Math.min(limit, 100), "KR", sort);
     return NextResponse.json(deals);
   } catch {
     return NextResponse.json({ error: "딜 목록 조회 중 오류가 발생했습니다." }, { status: 500 });

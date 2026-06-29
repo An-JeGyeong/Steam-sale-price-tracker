@@ -155,9 +155,30 @@ function NavSearchBox() {
 
 interface SteamProfile { name: string; avatar: string }
 
+const NAV_LINK_STYLE = {
+  fontSize: 14, fontWeight: 600, color: "#a3a8a4", textDecoration: "none",
+} as const;
+
+const DROP_LINK_BASE = {
+  display: "flex", alignItems: "center", gap: 10,
+  padding: "10px 16px",
+  fontSize: 13, fontWeight: 600, color: "#cfd3d0",
+  textDecoration: "none", background: "transparent",
+} as const;
+
 export default function Nav() {
   const [profile, setProfile] = useState<SteamProfile | null>(null);
   const { theme, toggle } = useTheme();
+  const [dropOpen, setDropOpen] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function openDrop() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setDropOpen(true);
+  }
+  function scheduleDrop() {
+    closeTimer.current = setTimeout(() => setDropOpen(false), 120);
+  }
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -170,11 +191,28 @@ export default function Nav() {
       .catch(() => {});
   }, []);
 
+  const avatarEl = (size: number, radius: number) => (
+    <div style={{
+      width: size, height: size, borderRadius: radius, overflow: "hidden",
+      background: "#1e2424", border: "1.5px solid rgba(67,194,130,.35)", flexShrink: 0,
+    }}>
+      {profile?.avatar ? (
+        <img
+          src={profile.avatar}
+          alt={profile.name}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+        />
+      ) : (
+        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.43, fontWeight: 700, color: "#5fd39a" }}>
+          {profile?.name.charAt(0).toUpperCase() ?? "?"}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <nav
-      className="site-nav"
-      style={{ position: "sticky", top: 0, zIndex: 30 }}
-    >
+    <nav className="site-nav" style={{ position: "sticky", top: 0, zIndex: 30 }}>
       <div style={{
         maxWidth: 1180, margin: "0 auto", height: 60,
         padding: "0 22px", display: "flex", alignItems: "center", gap: 18,
@@ -183,6 +221,7 @@ export default function Nav() {
         <Link href="/" style={{
           display: "flex", alignItems: "center", gap: 9, flexShrink: 0,
           fontWeight: 800, fontSize: 16, letterSpacing: "-0.3px", color: "#eef6f0",
+          textDecoration: "none",
         }}>
           <span style={{
             width: 22, height: 22, borderRadius: 6, flexShrink: 0,
@@ -200,90 +239,162 @@ export default function Nav() {
           display: "flex", alignItems: "center", gap: 16, flexShrink: 0,
           marginLeft: "auto",
         }}>
-          <Link href="/" style={{ fontSize: 14, fontWeight: 600, color: "#a3a8a4", textDecoration: "none" }}>핫딜</Link>
-          <Link href="/sales" style={{ fontSize: 14, fontWeight: 600, color: "#a3a8a4", textDecoration: "none" }}>세일 일정</Link>
+          <Link href="/" style={NAV_LINK_STYLE}>핫딜</Link>
+          <Link href="/sales" style={NAV_LINK_STYLE}>세일 일정</Link>
+          <Link href="/deals" style={NAV_LINK_STYLE}>할인 전체</Link>
 
           {profile ? (
-            /* 로그인 상태 */
-            <>
-              {/* 프로필 아바타 (테마 토글) + 이름 */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button
-                  onClick={toggle}
-                  aria-label="테마 변경"
-                  style={{
-                    position: "relative",
-                    background: "none", border: "none", cursor: "pointer", padding: 0,
-                    flexShrink: 0,
-                  }}
-                >
-                  <div style={{
-                    width: 30, height: 30, borderRadius: 8, overflow: "hidden",
-                    background: "#1e2424", border: "1.5px solid rgba(67,194,130,.35)",
-                  }}>
-                    {profile.avatar ? (
-                      <img
-                        src={profile.avatar}
-                        alt={profile.name}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                      />
-                    ) : (
-                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#5fd39a" }}>
-                        {profile.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  {/* 테마 오버레이 아이콘 */}
-                  <span style={{
-                    position: "absolute", bottom: -2, right: -2,
-                    width: 12, height: 12, borderRadius: "50%",
-                    background: "#141716", border: "1px solid #272d2d",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 7, lineHeight: "1", pointerEvents: "none",
-                  }}>
-                    {theme === "dark" ? "🌙" : "☀️"}
-                  </span>
-                </button>
+            /* 로그인 상태 — 호버 드롭다운 */
+            <div
+              style={{ position: "relative" }}
+              onMouseEnter={openDrop}
+              onMouseLeave={scheduleDrop}
+            >
+              {/* 트리거: 아바타 + 이름 */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                {avatarEl(30, 8)}
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#e6ebe8", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {profile.name}
                 </span>
               </div>
 
-              {/* 찜목록 */}
-              <Link
-                href="/wishlist"
-                style={{
-                  display: "flex", alignItems: "center", gap: 7,
-                  fontSize: 13, fontWeight: 700, color: "#5fd39a",
-                  background: "rgba(67,194,130,.1)", border: "1px solid rgba(67,194,130,.25)",
-                  padding: "6px 13px", borderRadius: 8, textDecoration: "none",
-                }}
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                </svg>
-                찜목록
-              </Link>
-              <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
-                <button
-                  type="submit"
+              {/* 드롭다운 */}
+              {dropOpen && (
+                <div
+                  onMouseEnter={openDrop}
+                  onMouseLeave={scheduleDrop}
                   style={{
-                    display: "flex", alignItems: "center", gap: 7,
-                    fontSize: 12, fontWeight: 600, color: "#7e827f",
-                    background: "#141616", border: "1px solid #272d2d",
-                    padding: "6px 12px", borderRadius: 8, cursor: "pointer",
-                    fontFamily: "'Noto Sans KR', system-ui, sans-serif",
+                    position: "absolute",
+                    top: "calc(100% + 6px)",
+                    right: 0,
+                    minWidth: 220,
+                    background: "#141716",
+                    border: "1px solid #2c4135",
+                    borderRadius: 12,
+                    boxShadow: "0 16px 50px rgba(0,0,0,.6)",
+                    zIndex: 200,
+                    overflow: "hidden",
+                    padding: 0,
                   }}
                 >
-                  로그아웃
-                </button>
-              </form>
-            </>
+                  {/* 1. 프로필 헤더 */}
+                  <Link
+                    href="/profile"
+                    style={{ display: "flex", alignItems: "center", gap: 11, padding: "14px 16px", textDecoration: "none", background: "transparent" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(67,194,130,.05)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
+                  >
+                    {avatarEl(32, 8)}
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#e6ebe8" }}>{profile.name}</div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#5fd39a", marginTop: 2 }}>마이페이지 →</div>
+                    </div>
+                  </Link>
+
+                  {/* 2. 구분선 */}
+                  <div style={{ height: 1, background: "#1e2424", margin: "0 12px" }} />
+
+                  {/* 3. 테마 토글 */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px" }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#cfd3d0" }}>
+                      {theme === "dark" ? "🌙 다크 모드" : "☀️ 라이트 모드"}
+                    </span>
+                    <button
+                      onClick={toggle}
+                      aria-label="테마 변경"
+                      style={{
+                        position: "relative",
+                        width: 44,
+                        height: 24,
+                        borderRadius: 12,
+                        border: "none",
+                        cursor: "pointer",
+                        background: theme === "dark" ? "#2c3630" : "#5fd39a",
+                        transition: "background 0.2s",
+                        flexShrink: 0,
+                        padding: 0,
+                      }}
+                    >
+                      <span style={{
+                        position: "absolute",
+                        top: "4px",
+                        left: theme === "dark" ? "4px" : "calc(100% - 20px)",
+                        width: 16,
+                        height: 16,
+                        borderRadius: "50%",
+                        background: "#fff",
+                        transition: "left 0.2s",
+                        display: "block",
+                      }} />
+                    </button>
+                  </div>
+
+                  {/* 4. 구분선 */}
+                  <div style={{ height: 1, background: "#1e2424", margin: "0 12px" }} />
+
+                  {/* 5. 마이페이지 */}
+                  <Link
+                    href="/profile"
+                    style={DROP_LINK_BASE}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(67,194,130,.06)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
+                  >
+                    <span>👤</span><span>마이페이지</span>
+                  </Link>
+
+                  {/* 6. 찜목록 */}
+                  <Link
+                    href="/wishlist"
+                    style={DROP_LINK_BASE}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(67,194,130,.06)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
+                  >
+                    <span>🔖</span><span>찜목록</span>
+                  </Link>
+
+                  {/* 7. 피드백 */}
+                  <Link
+                    href="/feedback"
+                    style={DROP_LINK_BASE}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(67,194,130,.06)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
+                  >
+                    <span>📋</span><span>피드백</span>
+                  </Link>
+
+                  {/* 8. 구분선 */}
+                  <div style={{ height: 1, background: "#1e2424", margin: "0 12px" }} />
+
+                  {/* 9. 로그아웃 */}
+                  <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
+                    <button
+                      type="submit"
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        width: "100%", padding: "11px 16px",
+                        fontSize: 13, fontWeight: 600, color: "#7e827f",
+                        background: "none", border: "none", cursor: "pointer",
+                        fontFamily: "'Noto Sans KR', system-ui, sans-serif",
+                        textAlign: "left",
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = "rgba(232,112,95,.06)";
+                        (e.currentTarget as HTMLButtonElement).style.color = "#e8705f";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                        (e.currentTarget as HTMLButtonElement).style.color = "#7e827f";
+                      }}
+                    >
+                      <span>↪</span><span>로그아웃</span>
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
           ) : (
-            /* 로그아웃 상태 */
+            /* 비로그인 상태 */
             <>
-              {/* 테마 토글 버튼 */}
               <button
                 onClick={toggle}
                 aria-label="테마 변경"
@@ -297,6 +408,7 @@ export default function Nav() {
               >
                 {theme === "dark" ? "☀️" : "🌙"}
               </button>
+              <Link href="/feedback" style={NAV_LINK_STYLE}>피드백</Link>
               <a
                 href="/api/auth/steam"
                 style={{
