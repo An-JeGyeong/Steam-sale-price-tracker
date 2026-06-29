@@ -41,6 +41,7 @@ const DealItemSchema = z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
+  type: z.string().optional(),  // "game" | "dlc" | "bundle" | "software" etc.
   assets: z.object({ boxart: z.string().optional() }).optional(),
   deal: z.object({
     shop: z.object({ id: z.number(), name: z.string() }),

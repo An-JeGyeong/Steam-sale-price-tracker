@@ -19,9 +19,11 @@ function won(n: number) { return "₩" + n.toLocaleString("ko-KR"); }
 function fmtCd(sec: number): string {
   if (sec <= 0) return "종료";
   let s = sec;
-  const h = Math.floor(s / 3600); s -= h * 3600;
-  const m = Math.floor(s / 60);   s -= m * 60;
+  const d = Math.floor(s / 86400); s -= d * 86400;
+  const h = Math.floor(s / 3600);  s -= h * 3600;
+  const m = Math.floor(s / 60);    s -= m * 60;
   const z = (v: number) => String(v).padStart(2, "0");
+  if (d >= 1) return `${d}일 ${z(h)}:${z(m)}`;
   return h >= 1 ? `${h}:${z(m)}:${z(s)}` : `${z(m)}:${z(s)}`;
 }
 
@@ -35,6 +37,20 @@ function discountColor(cut: number): string {
   if (cut >= 50) return "#43c282";
   if (cut >= 25) return "#e8b84b";
   return "#a3a8a4";
+}
+
+function isDlc(item: DealItem): boolean {
+  const raw = item as unknown as Record<string, unknown>;
+  if (typeof raw.type === "string") return raw.type === "dlc";
+  const lc = item.title.toLowerCase();
+  return /\bdlc\b/.test(lc) || /\bsoundtrack\b/.test(lc) || /\bseason pass\b/.test(lc) || lc.endsWith(" ost");
+}
+
+function cdColor(sec: number): string {
+  if (sec <= 2 * 3600)  return "#e8705f";  // < 2h  빨강
+  if (sec <= 6 * 3600)  return "#ff8c42";  // < 6h  주황
+  if (sec <= 24 * 3600) return "#ffb454";  // < 24h 노랑
+  return "#a3b8a8";                         // 여유
 }
 
 const CAP_SM = "repeating-linear-gradient(45deg,transparent 0 10px,rgba(32,36,34,.55) 10px 20px),linear-gradient(135deg,#1c1f1e,#141716)";
@@ -66,7 +82,8 @@ function getSaleUntil(deals: DealItem[]): string | null {
   for (const deal of deals) {
     if (!deal.deal.expiry) continue;
     const dt = new Date(deal.deal.expiry);
-    const key = `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+    // UTC 기준으로 날짜를 읽어야 함 — KST(+9)로 읽으면 Steam 공식 날짜보다 하루 앞서 표시됨
+    const key = `${dt.getUTCFullYear()}-${dt.getUTCMonth()}-${dt.getUTCDate()}`;
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   if (counts.size === 0) return null;
@@ -301,6 +318,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
   const now = item.deal.price.amount;
   const cut = item.deal.cut;
   const isLow = item.deal.flag === "H" || item.deal.flag === "N";
+  const isDlcItem = isDlc(item);
   const col = discountColor(cut);
 
   return (
@@ -354,15 +372,25 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
           }}>
             {item.title}
           </div>
-          {isLow && (
-            <span style={{
-              display: "inline-block", marginTop: 3,
-              fontSize: 9.5, fontWeight: 800, letterSpacing: 0.4,
-              color: "#06120b", background: "#5fd39a",
-              padding: "1.5px 6px", borderRadius: 4,
-            }}>
-              역대 최저
-            </span>
+          {(isDlcItem || isLow) && (
+            <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
+              {isDlcItem && (
+                <span style={{
+                  display: "inline-block",
+                  fontSize: 9.5, fontWeight: 800, letterSpacing: 0.4,
+                  color: "#b8c8dc", background: "#1e2e42",
+                  padding: "1.5px 6px", borderRadius: 4,
+                }}>DLC</span>
+              )}
+              {isLow && (
+                <span style={{
+                  display: "inline-block",
+                  fontSize: 9.5, fontWeight: 800, letterSpacing: 0.4,
+                  color: "#06120b", background: "#5fd39a",
+                  padding: "1.5px 6px", borderRadius: 4,
+                }}>역대 최저</span>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -565,13 +593,27 @@ export default function HomePage() {
         {/* ─── 찜목록 할인 중 ─── */}
         {(wishLoading || wishSale.length > 0) && (
           <div style={{ marginBottom: 40 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#e8705f" stroke="none">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-              내 찜목록 할인 중
-              <span style={{ fontSize: 12, fontWeight: 500, color: "#7e827f" }}>({wishSale.length}개)</span>
+            {/* 헤더 */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#e8705f" stroke="none">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                내 찜목록 할인 중
+                {!wishLoading && <span style={{ fontSize: 12, fontWeight: 500, color: "#7e827f" }}>({wishSale.length}개)</span>}
+              </div>
+              <Link
+                href="/wishlist"
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12.5, fontWeight: 600, color: "#7e827f", textDecoration: "none" }}
+              >
+                전체보기
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
             </div>
+
+            {/* 가로 스크롤 + 마지막에 더보기 카드 */}
             <div className="wish-scroll" style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8 }}>
               {wishLoading
                 ? Array.from({ length: 4 }, (_, i) => (
@@ -583,44 +625,71 @@ export default function HomePage() {
                       </div>
                     </div>
                   ))
-                : wishSale.map((g) => {
-                    const imgSrc = g.capsule
-                      ?? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.appId}/header.jpg`;
-                    return (
-                      <Link
-                        key={g.appId}
-                        href={`/game/${g.itadId}?title=${encodeURIComponent(g.title)}&appid=${g.appId}`}
-                        style={{ flexShrink: 0, width: 180, background: "#141716", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden", textDecoration: "none" }}
-                      >
-                        <div style={{ height: 90, background: "#1a1d1d", overflow: "hidden", position: "relative" }}>
-                          <img src={imgSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                          <span style={{
-                            position: "absolute", top: 7, right: 7,
-                            fontSize: 11, fontWeight: 800, color: "#07120b",
-                            background: "#5fd39a", padding: "2px 7px", borderRadius: 5,
-                            fontFamily: "'IBM Plex Mono',monospace",
-                          }}>-{g.disc}%</span>
-                          {g.isAllTimeLow && (
+                : (
+                  <>
+                    {wishSale.map((g) => {
+                      const imgSrc = g.capsule
+                        ?? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.appId}/header.jpg`;
+                      return (
+                        <Link
+                          key={g.appId}
+                          href={`/game/${g.itadId}?title=${encodeURIComponent(g.title)}&appid=${g.appId}`}
+                          style={{ flexShrink: 0, width: 180, background: "#141716", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden", textDecoration: "none" }}
+                        >
+                          <div style={{ height: 90, background: "#1a1d1d", overflow: "hidden", position: "relative" }}>
+                            <img src={imgSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                             <span style={{
-                              position: "absolute", top: 7, left: 7,
-                              fontSize: 9.5, fontWeight: 800, color: "#06120b",
-                              background: "#ffb454", padding: "2px 6px", borderRadius: 4,
-                            }}>역대최저</span>
-                          )}
-                        </div>
-                        <div style={{ padding: "10px 12px" }}>
-                          <div style={{ fontSize: 12.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 5 }}>
-                            {g.title}
+                              position: "absolute", top: 7, right: 7,
+                              fontSize: 11, fontWeight: 800, color: "#07120b",
+                              background: "#5fd39a", padding: "2px 7px", borderRadius: 5,
+                              fontFamily: "'IBM Plex Mono',monospace",
+                            }}>-{g.disc}%</span>
+                            {g.isAllTimeLow && (
+                              <span style={{
+                                position: "absolute", top: 7, left: 7,
+                                fontSize: 9.5, fontWeight: 800, color: "#06120b",
+                                background: "#ffb454", padding: "2px 6px", borderRadius: 4,
+                              }}>역대최저</span>
+                            )}
                           </div>
-                          <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 14, fontWeight: 700, color: "#5fd39a" }}>{won(g.now)}</span>
-                            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, color: "#4a504d", textDecoration: "line-through" }}>{won(g.old)}</span>
+                          <div style={{ padding: "10px 12px" }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 5 }}>
+                              {g.title}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                              <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 14, fontWeight: 700, color: "#5fd39a" }}>{won(g.now)}</span>
+                              <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, color: "#4a504d", textDecoration: "line-through" }}>{won(g.old)}</span>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
-                    );
-                  })
+                        </Link>
+                      );
+                    })}
+                    {/* 더보기 카드 */}
+                    <Link
+                      href="/wishlist"
+                      style={{
+                        flexShrink: 0, width: 130,
+                        background: "#111413", border: "1px solid #272d2d", borderRadius: 12,
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        gap: 8, textDecoration: "none",
+                      }}
+                    >
+                      <div style={{
+                        width: 36, height: 36, borderRadius: "50%",
+                        background: "rgba(95,211,154,.1)", border: "1px solid rgba(95,211,154,.25)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5fd39a" strokeWidth="2.5">
+                          <path d="M9 18l6-6-6-6" />
+                        </svg>
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#7e827f", textAlign: "center", lineHeight: 1.4 }}>
+                        찜목록<br />전체보기
+                      </span>
+                    </Link>
+                  </>
+                )
               }
             </div>
           </div>
@@ -671,9 +740,15 @@ export default function HomePage() {
                     현재 Steam 할인 중인 게임이 없습니다
                   </div>
                 )
-                : rawDeals.map((item, i) => (
-                  <DealRow key={item.id} item={item} rank={i + 1} isOdd={i % 2 !== 0} />
-                ))
+                : (() => {
+                  const sorted = [
+                    ...rawDeals.filter((d) => !isDlc(d)),
+                    ...rawDeals.filter((d) => isDlc(d)),
+                  ];
+                  return sorted.map((item, i) => (
+                    <DealRow key={item.id} item={item} rank={i + 1} isOdd={i % 2 !== 0} />
+                  ));
+                })()
           }
         </div>
 
@@ -730,7 +805,7 @@ export default function HomePage() {
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: "#ffb454", fontFamily: "'IBM Plex Mono',monospace", marginTop: 5, letterSpacing: 0.3 }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: cdColor(r), fontFamily: "'IBM Plex Mono',monospace", marginTop: 5, letterSpacing: 0.3 }}>
                             ⏳ {fmtCd(r)} 남음
                           </div>
                         </div>
