@@ -232,7 +232,7 @@ export default function WishlistPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <Link
-                        href={`/game/${g.itadId}?title=${encodeURIComponent(g.title)}`}
+                        href={`/game/${g.itadId}?title=${encodeURIComponent(g.title)}&appid=${g.appId}`}
                         style={{ fontSize: 14, fontWeight: 700, color: "#e6ebe8", textDecoration: "none" }}
                       >
                         {g.title}

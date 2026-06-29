@@ -171,7 +171,8 @@ export default function GameDetailPage() {
   }, [gameId]);
 
   /* fetch Steam reviews (depends on appId extracted after price loads) */
-  const appId = priceData?.shopUrl ? steamAppIdFromUrl(priceData.shopUrl) : null;
+  const appIdParam = searchParams.get("appid") ?? null;
+  const appId = appIdParam ?? (priceData?.shopUrl ? steamAppIdFromUrl(priceData.shopUrl) : null);
   useEffect(() => {
     if (!appId) return;
     fetch(`/api/steam/reviews?appid=${appId}`)
@@ -193,8 +194,9 @@ export default function GameDetailPage() {
   const verdictBg  = priceLoading ? "#2c4135" : isLow ? "#5fd39a" : priceError ? "#e8705f" : "#5fd39a";
   const verdictTxt = priceLoading ? "가격 불러오는 중…" : isLow ? "역대 최저가!" : priceError ? "가격 확인 필요" : "지금 사기 좋은 가격";
 
-  const heroImgUrl = appId ? steamHeroUrl(appId) : null;
-  const capImgUrl  = appId ? steamCapsuleUrl(appId) : null;
+  const itadBoxart = `https://assets.isthereanydeal.com/${gameId}/boxart.jpg`;
+  const heroImgUrl = appId ? steamHeroUrl(appId) : itadBoxart;
+  const capImgUrl  = appId ? steamCapsuleUrl(appId) : itadBoxart;
   const reviewMeta = reviews ? REVIEW_META[reviews.score] : null;
 
   const panel = (children: React.ReactNode, style?: React.CSSProperties) => (
@@ -226,7 +228,10 @@ export default function GameDetailPage() {
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
-                if (!img.dataset.fb) { img.dataset.fb = "1"; img.src = steamHeaderUrl(appId!); }
+                const fb1 = appId ? steamHeaderUrl(appId) : null;
+                const fb2 = itadBoxart;
+                if (!img.dataset.fb && fb1 && img.src !== fb1) { img.dataset.fb = "1"; img.src = fb1; }
+                else if (img.dataset.fb !== "2" && img.src !== fb2) { img.dataset.fb = "2"; img.src = fb2; }
                 else img.style.display = "none";
               }}
             />

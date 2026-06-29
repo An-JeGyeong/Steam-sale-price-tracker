@@ -589,7 +589,7 @@ export default function HomePage() {
                     return (
                       <Link
                         key={g.appId}
-                        href={`/game/${g.itadId}?title=${encodeURIComponent(g.title)}`}
+                        href={`/game/${g.itadId}?title=${encodeURIComponent(g.title)}&appid=${g.appId}`}
                         style={{ flexShrink: 0, width: 180, background: "#141716", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden", textDecoration: "none" }}
                       >
                         <div style={{ height: 90, background: "#1a1d1d", overflow: "hidden", position: "relative" }}>
