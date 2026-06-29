@@ -52,6 +52,13 @@ const REVIEW_META: Record<number, { label: string; color: string; bg: string; bo
 
 function won(n: number) { return "₩" + n.toLocaleString("ko-KR"); }
 
+function safeUrl(url: string): string | undefined {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "https:" || protocol === "http:" ? url : undefined;
+  } catch { return undefined; }
+}
+
 function fmtCountdown(sec: number): string {
   if (sec <= 0) return "종료";
   let s = sec;
@@ -422,9 +429,9 @@ export default function GameDetailPage() {
                 </div>
 
                 {/* CTA buttons */}
-                {priceData?.shopUrl ? (
+                {priceData?.shopUrl && safeUrl(priceData.shopUrl) ? (
                   <a
-                    href={priceData.shopUrl}
+                    href={safeUrl(priceData.shopUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{

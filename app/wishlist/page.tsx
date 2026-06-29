@@ -28,6 +28,13 @@ interface WishlistData {
 
 function won(n: number) { return "₩" + n.toLocaleString("ko-KR"); }
 
+function safeUrl(url: string): string | undefined {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "https:" || protocol === "http:" ? url : undefined;
+  } catch { return undefined; }
+}
+
 const CAP_BG = "repeating-linear-gradient(45deg,transparent 0 14px,rgba(32,36,34,.55) 14px 28px),linear-gradient(135deg,#1c1f1e,#141716)";
 
 function SkeletonRow() {
@@ -280,7 +287,7 @@ export default function WishlistPage() {
                   {/* Steam 이동 버튼 */}
                   {g.onSale && (
                     <a
-                      href={g.shopUrl}
+                      href={safeUrl(g.shopUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{

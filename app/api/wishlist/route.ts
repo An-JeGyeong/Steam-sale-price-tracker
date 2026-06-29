@@ -73,8 +73,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ games, total, matched: matched.length });
   } catch (err) {
-    const rawMsg = err instanceof Error ? err.message : String(err);
-    const message = rawMsg.includes("위시리스트") ? rawMsg : `위시리스트 조회 실패: ${rawMsg}`;
+    const rawMsg = err instanceof Error ? err.message : "";
+    const message = rawMsg.includes("위시리스트")
+      ? rawMsg
+      : "위시리스트 조회 중 오류가 발생했습니다.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
