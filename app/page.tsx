@@ -572,7 +572,7 @@ export default function HomePage() {
               내 찜목록 할인 중
               <span style={{ fontSize: 12, fontWeight: 500, color: "#7e827f" }}>({wishSale.length}개)</span>
             </div>
-            <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 4 }}>
+            <div className="wish-scroll" style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8 }}>
               {wishLoading
                 ? Array.from({ length: 4 }, (_, i) => (
                     <div key={i} style={{ flexShrink: 0, width: 180, background: "#141716", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden" }}>

@@ -42,6 +42,12 @@ body {
 .reccard:hover { border-color: #2c4135 !important; }
 .smore:hover { color: var(--c-green) !important; }
 
+.wish-scroll::-webkit-scrollbar         { height: 4px; }
+.wish-scroll::-webkit-scrollbar-track   { background: #111413; border-radius: 2px; }
+.wish-scroll::-webkit-scrollbar-thumb   { background: #2c4135; border-radius: 2px; }
+.wish-scroll::-webkit-scrollbar-thumb:hover { background: #5fd39a; }
+.wish-scroll { scrollbar-width: thin; scrollbar-color: #2c4135 #111413; }
+
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%       { opacity: 0.45; transform: scale(0.75); }
