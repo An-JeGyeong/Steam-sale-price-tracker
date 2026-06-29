@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 4. ITAD 가격 일괄 조회
-    const prices = await getPrices(matched.map((m) => m.itadId));
+    const prices = await getPrices(matched.map((m) => m.itadId)).catch(() => []);
 
     // 5. 결과 합치기 — 현재 할인 중인 게임만
     const games = matched

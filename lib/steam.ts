@@ -43,15 +43,23 @@ export interface SteamWishGame {
 
 export async function fetchSteamWishlist(steamId: string): Promise<SteamWishGame[]> {
   const url =
-    `https://store.steampowered.com/wishlist/profiles/${steamId}/wishlistdata/`;
+    `https://store.steampowered.com/wishlist/profiles/${steamId}/wishlistdata/?p=0`;
   const res = await fetch(url, {
-    headers: { "Accept": "application/json" },
+    headers: {
+      "Accept": "application/json",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    },
     cache: "no-store",
   });
 
-  if (!res.ok) throw new Error("위시리스트 접근 실패");
+  if (!res.ok) throw new Error(`위시리스트 접근 실패 (HTTP ${res.status})`);
 
-  const data = await res.json() as Record<string, unknown>;
+  let data: Record<string, unknown>;
+  try {
+    data = await res.json() as Record<string, unknown>;
+  } catch {
+    throw new Error("위시리스트 응답을 읽을 수 없습니다. Steam 서버 문제일 수 있습니다.");
+  }
 
   // 비공개 위시리스트 → { success: 2 } 형태
   const appIds = Object.keys(data).filter((k) => /^\d+$/.test(k));
