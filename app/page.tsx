@@ -457,7 +457,7 @@ export default function HomePage() {
   const [endingDeals, setEndingDeals] = useState<DealItem[]>([]);
   const [endingLoading, setEndingLoading] = useState(true);
   const [wishSale, setWishSale] = useState<WishSaleGame[]>([]);
-  const [wishLoading, setWishLoading] = useState(false);
+  const [wishLoading, setWishLoading] = useState(true);
 
   useEffect(() => {
     const iv = setInterval(() => setTick((t) => t + 1), 1000);
@@ -465,19 +465,25 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d: { loggedIn: boolean }) => {
-        if (!d.loggedIn) return;
-        setWishLoading(true);
-        return fetch("/api/wishlist")
-          .then((r) => r.json())
-          .then((data: { games?: WishSaleGame[]; error?: string }) => {
-            if (!data.error) setWishSale((data.games ?? []).filter((g) => g.onSale));
-          })
-          .finally(() => setWishLoading(false));
-      })
-      .catch(() => {});
+    let cancelled = false;
+    (async () => {
+      try {
+        const meRes = await fetch("/api/auth/me");
+        const me = await meRes.json() as { loggedIn: boolean };
+        if (!me.loggedIn || cancelled) { setWishLoading(false); return; }
+
+        const wRes = await fetch("/api/wishlist");
+        const wData = await wRes.json() as { games?: WishSaleGame[]; error?: string };
+        if (!cancelled && !wData.error) {
+          setWishSale((wData.games ?? []).filter((g) => g.onSale));
+        }
+      } catch {
+        // 네트워크 오류 등
+      } finally {
+        if (!cancelled) setWishLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
