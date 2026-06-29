@@ -43,8 +43,8 @@ function detectSale(): SaleBanner | null {
   const d = now.getDate();
   const y = now.getFullYear();
 
-  if ((m === 6 && d >= 24) || (m === 7 && d <= 11))
-    return { label: "Steam 여름 세일 진행 중!", icon: "☀️", color: "#f0a030", bg: "rgba(240,160,48,.1)", border: "rgba(240,160,48,.3)", until: `7월 11일까지` };
+  if ((m === 6 && d >= 26) || (m === 7 && d <= 9))
+    return { label: "Steam 여름 세일 진행 중!", icon: "☀️", color: "#f0a030", bg: "rgba(240,160,48,.1)", border: "rgba(240,160,48,.3)", until: `7월 9일까지` };
   if ((m === 12 && d >= 19) || (m === 1 && d <= 5))
     return { label: "Steam 겨울 세일 진행 중!", icon: "❄️", color: "#60c8e8", bg: "rgba(96,200,232,.1)", border: "rgba(96,200,232,.3)", until: m === 12 ? `${y + 1}년 1월 5일까지` : `1월 5일까지` };
   if (m === 11 && d >= 21)

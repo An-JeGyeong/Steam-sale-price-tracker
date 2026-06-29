@@ -117,7 +117,7 @@ export default function GameDetailPage() {
   /* fetch price data */
   useEffect(() => {
     if (!gameId) return;
-    fetch(`/api/check?id=${encodeURIComponent(gameId)}`)
+    fetch(`/api/check?id=${encodeURIComponent(gameId)}&country=KR`)
       .then((r) => r.ok ? r.json() : Promise.reject())
       .then((data) => {
         const { bestDeal, historyLow, isAllTimeLow } = data;
