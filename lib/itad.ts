@@ -85,7 +85,8 @@ export type GameLookup = z.infer<typeof GameLookupSchema>;
 
 /* ── Steam CDN helpers ── */
 export function steamAppIdFromUrl(url: string): string | null {
-  const m = url.match(/store\.steampowered\.com\/app\/(\d+)/);
+  const m = url.match(/store\.steampowered\.com\/app\/(\d+)/)
+    ?? url.match(/\/steam\/apps\/(\d+)\//);
   return m ? m[1] : null;
 }
 export const steamHeaderUrl  = (id: string) => `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/header.jpg`;

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
 import type { GameSearchResult, DealItem } from "@/lib/itad";
-import { steamAppIdFromUrl, steamHeaderUrl } from "@/lib/itad";
+import { steamAppIdFromUrl, steamHeaderUrl, steamCapsuleUrl } from "@/lib/itad";
 
 /* ── helpers ── */
 function won(n: number) { return "₩" + n.toLocaleString("ko-KR"); }
@@ -289,7 +289,7 @@ function HeroSearch() {
 /* ── deal table row ── */
 function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: boolean }) {
   const [hovered, setHovered] = useState(false);
-  const appId = steamAppIdFromUrl(item.deal.url);
+  const appId = steamAppIdFromUrl(item.deal.url) ?? steamAppIdFromUrl(item.assets?.boxart ?? "");
   const imgSrc = item.assets?.boxart ?? (appId ? steamHeaderUrl(appId) : null);
   const reg = item.deal.regular.amount;
   const now = item.deal.price.amount;
@@ -332,8 +332,10 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
-                const fb = appId ? steamHeaderUrl(appId) : null;
-                if (fb && img.src !== fb) { img.src = fb; }
+                const header  = appId ? steamHeaderUrl(appId) : null;
+                const capsule = appId ? steamCapsuleUrl(appId) : null;
+                if (header && img.src !== header) { img.src = header; }
+                else if (capsule && img.src !== capsule) { img.src = capsule; }
                 else { img.style.display = "none"; }
               }}
             />
