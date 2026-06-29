@@ -76,8 +76,8 @@ function historyToRaw(history: HistoryPoint[]): RawPoint[] {
     const date = new Date(h.timestamp);
     const key = `${String(date.getFullYear()).slice(2)}.${date.getMonth() + 1}`;
     const cur = byMonth.get(key);
-    if (!cur || h.price.amount < cur.p) {
-      byMonth.set(key, { p: h.price.amount, cut: h.cut });
+    if (!cur || h.deal.price.amount < cur.p) {
+      byMonth.set(key, { p: h.deal.price.amount, cut: h.deal.cut });
     }
   }
   const entries = Array.from(byMonth.entries());

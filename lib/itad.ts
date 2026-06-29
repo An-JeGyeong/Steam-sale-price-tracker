@@ -59,12 +59,13 @@ const DealsResponseSchema = z.object({
 });
 
 const HistoryPointSchema = z.object({
-  shop: z.object({ id: z.number(), name: z.string() }),
-  price: PriceInfoSchema,
-  regular: PriceInfoSchema,
-  cut: z.number(),
   timestamp: z.string(),
-  expiry: z.string().nullish(),
+  shop: z.object({ id: z.number(), name: z.string() }),
+  deal: z.object({
+    price: PriceInfoSchema,
+    regular: PriceInfoSchema,
+    cut: z.number(),
+  }).passthrough(),
 }).passthrough();
 
 const GameLookupSchema = z.object({
