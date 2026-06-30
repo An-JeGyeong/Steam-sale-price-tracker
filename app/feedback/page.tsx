@@ -64,7 +64,10 @@ function loadPosts(): FeedbackPost[] {
     }
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [...SEED_POSTS];
-    return parsed as FeedbackPost[];
+    return (parsed as FeedbackPost[]).map((p) => ({
+      ...p,
+      upvotes: typeof p.upvotes === "number" ? p.upvotes : 0,
+    }));
   } catch {
     return [...SEED_POSTS];
   }
@@ -109,6 +112,7 @@ export default function FeedbackPage() {
   function handleSubmit() {
     if (!formTitle.trim() || !formContent.trim()) {
       setSubmitMsg("제목과 내용을 입력해주세요.");
+      setTimeout(() => setSubmitMsg(""), 3000);
       return;
     }
     const newPost: FeedbackPost = {
@@ -270,7 +274,7 @@ export default function FeedbackPage() {
             </div>
           )}
           {submitMsg && !formOpen && (
-            <div style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: "#5fd39a" }}>{submitMsg}</div>
+            <div style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: submitMsg.includes("!") ? "#5fd39a" : "#e8705f" }}>{submitMsg}</div>
           )}
         </div>
 

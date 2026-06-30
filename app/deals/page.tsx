@@ -68,7 +68,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
   const reg = item.deal.regular.amount;
   const now = item.deal.price.amount;
   const cut = item.deal.cut;
-  const isLow = item.deal.flag === "H" || item.deal.flag === "N";
+  const isLow = item.deal.flag === "H";
   const isDlcItem = isDlc(item);
   const col = discountColor(cut);
 

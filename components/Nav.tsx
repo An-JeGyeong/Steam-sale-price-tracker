@@ -185,7 +185,11 @@ export default function Nav() {
       .then((r) => r.json())
       .then((d: { loggedIn: boolean; steamName?: string; steamAvatar?: string }) => {
         if (d.loggedIn) {
-          setProfile({ name: d.steamName ?? "Steam 유저", avatar: d.steamAvatar ?? "" });
+          const customAvatar = localStorage.getItem("custom-avatar");
+          setProfile({
+            name: d.steamName ?? "Steam 유저",
+            avatar: customAvatar || d.steamAvatar || "",
+          });
         }
       })
       .catch(() => {});

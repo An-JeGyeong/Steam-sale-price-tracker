@@ -106,6 +106,10 @@ export default function ProfilePage() {
   }, []);
 
   useEffect(() => {
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, []);
+
+  useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((d: AuthMeResponse) => {
@@ -127,6 +131,8 @@ export default function ProfilePage() {
     setCustomAvatar("");
     setAvatarInput("");
     localStorage.removeItem("custom-avatar");
+    setSavedMsg(false);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
   }
 
   const effectiveAvatar = customAvatar || (profile?.steamAvatar ?? "");

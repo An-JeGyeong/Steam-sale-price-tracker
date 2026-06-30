@@ -40,8 +40,7 @@ function discountColor(cut: number): string {
 }
 
 function isDlc(item: DealItem): boolean {
-  const raw = item as unknown as Record<string, unknown>;
-  if (typeof raw.type === "string") return raw.type === "dlc";
+  if (item.type !== undefined) return item.type === "dlc";
   const lc = item.title.toLowerCase();
   return /\bdlc\b/.test(lc) || /\bsoundtrack\b/.test(lc) || /\bseason pass\b/.test(lc) || lc.endsWith(" ost");
 }
@@ -317,7 +316,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
   const reg = item.deal.regular.amount;
   const now = item.deal.price.amount;
   const cut = item.deal.cut;
-  const isLow = item.deal.flag === "H" || item.deal.flag === "N";
+  const isLow = item.deal.flag === "H";
   const isDlcItem = isDlc(item);
   const col = discountColor(cut);
 
@@ -515,6 +514,7 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     fetch("/api/deals?limit=20")
       .then(async (r) => {
         const data = await r.json();
@@ -522,16 +522,20 @@ export default function HomePage() {
         return data as DealItem[];
       })
       .then((data) => {
+        if (cancelled) return;
         setRawDeals(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch((e: unknown) => {
+        if (cancelled) return;
         setLoading(false);
         setError(e instanceof Error ? e.message : "알 수 없는 오류");
       });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     fetch("/api/deals?limit=20&sort=expiry")
       .then(async (r) => {
         const data = await r.json();
@@ -539,6 +543,7 @@ export default function HomePage() {
         return data as DealItem[];
       })
       .then((data) => {
+        if (cancelled) return;
         const now = Date.now();
         // 만료 기한이 미래인 딜만 — 과거 만료 데이터는 제외
         const future = (Array.isArray(data) ? data : []).filter(
@@ -547,7 +552,8 @@ export default function HomePage() {
         setEndingDeals(future.slice(0, 4));
         setEndingLoading(false);
       })
-      .catch(() => setEndingLoading(false));
+      .catch(() => { if (!cancelled) setEndingLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   // expiry-sort API가 만료된 데이터만 반환할 때 rawDeals에서 fallback
@@ -791,7 +797,7 @@ export default function HomePage() {
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
-              {(endingLoading && !loading)
+              {(endingLoading || loading)
                 ? Array.from({ length: 4 }, (_, i) => <SkeletonEndingCard key={i} />)
                 : displayEndingDeals.length === 0
                   ? (
@@ -847,8 +853,8 @@ export default function HomePage() {
 
           {/* 역대최저 갱신 중 */}
           {(() => {
-            const lowGames  = rawDeals.filter((d) => d.deal.flag === "H" || d.deal.flag === "N");
-            const restGames = rawDeals.filter((d) => d.deal.flag !== "H" && d.deal.flag !== "N");
+            const lowGames  = rawDeals.filter((d) => d.deal.flag === "H");
+            const restGames = rawDeals.filter((d) => d.deal.flag !== "H");
             const topGames  = [...lowGames, ...restGames].slice(0, 6);
             const hasLow    = lowGames.length > 0;
             return (
@@ -869,7 +875,7 @@ export default function HomePage() {
                         </div>
                       )
                       : topGames.map((item, i) => {
-                        const isLow = item.deal.flag === "H" || item.deal.flag === "N";
+                        const isLow = item.deal.flag === "H";
                         return (
                           <Link
                             key={item.id}

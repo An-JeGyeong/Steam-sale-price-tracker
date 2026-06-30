@@ -7,7 +7,8 @@ function hasKorean(text: string): boolean {
 
 async function translateKoToEn(text: string): Promise<string> {
   try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ko|en&de=anjmo4568@gmail.com`;
+    const email = process.env.MYMEMORY_EMAIL ?? "";
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ko|en${email ? `&de=${encodeURIComponent(email)}` : ""}`;
     const res = await fetch(url, { next: { revalidate: 86400 } });
     if (!res.ok) return text;
     const data = (await res.json()) as {
