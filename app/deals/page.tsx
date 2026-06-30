@@ -127,7 +127,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
                 <span style={{ display: "inline-block", fontSize: 9.5, fontWeight: 800, letterSpacing: 0.4, color: "#b8c8dc", background: "#1e2e42", padding: "1.5px 6px", borderRadius: 4 }}>DLC</span>
               )}
               {isLow && (
-                <span style={{ display: "inline-block", fontSize: 9.5, fontWeight: 800, letterSpacing: 0.4, color: "#06120b", background: "#5fd39a", padding: "1.5px 6px", borderRadius: 4 }}>역대 최저</span>
+                <span style={{ display: "inline-block", fontSize: 9.5, fontWeight: 800, letterSpacing: 0.4, color: "#06120b", background: "#5fd39a", padding: "1.5px 6px", borderRadius: 4, whiteSpace: "nowrap" }}>역대 최저</span>
               )}
             </div>
           )}

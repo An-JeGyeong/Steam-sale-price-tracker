@@ -387,7 +387,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
                   display: "inline-block",
                   fontSize: 9.5, fontWeight: 800, letterSpacing: 0.4,
                   color: "#06120b", background: "#5fd39a",
-                  padding: "1.5px 6px", borderRadius: 4,
+                  padding: "1.5px 6px", borderRadius: 4, whiteSpace: "nowrap",
                 }}>역대 최저</span>
               )}
             </div>
