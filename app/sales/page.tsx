@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -57,8 +57,8 @@ function StatusBadge({ sale, status, nowMs }: { sale: SaleEntry; status: "past" 
   if (status === "past") {
     return (
       <span style={{
-        fontSize: 12, fontWeight: 700, color: "#7e827f",
-        background: "#1e2222", padding: "3px 10px", borderRadius: 20,
+        fontSize: 12, fontWeight: 700, color: "var(--c-text-muted)",
+        background: "var(--c-border-div)", padding: "3px 10px", borderRadius: 20,
         whiteSpace: "nowrap",
       }}>
         종료됨
@@ -119,14 +119,14 @@ export default function SalesPage() {
         {/* 페이지 헤더 */}
         <div style={{ padding: "44px 0 36px", textAlign: "center" }}>
           <h1 style={{
-            fontSize: 34, fontWeight: 800, color: "#eef6f0",
+            fontSize: 34, fontWeight: 800, color: "var(--c-text-head)",
             margin: "0 0 12px", letterSpacing: -0.5,
             fontFamily: "'Noto Sans KR', system-ui, sans-serif",
           }}>
             Steam 할인 일정
           </h1>
           <p style={{
-            fontSize: 15, color: "#a3a8a4", margin: 0,
+            fontSize: 15, color: "var(--c-text-sub)", margin: 0,
             fontFamily: "'Noto Sans KR', system-ui, sans-serif",
           }}>
             역대 최저가를 잡을 최적의 타이밍을 미리 확인하세요
@@ -172,7 +172,7 @@ export default function SalesPage() {
                   </div>
 
                   {/* 날짜 범위 */}
-                  <div style={{ fontSize: 14, color: "#a3a8a4", marginBottom: 18 }}>
+                  <div style={{ fontSize: 14, color: "var(--c-text-sub)", marginBottom: 18 }}>
                     {fmtDate(currentSale.startIso)} – {fmtDate(currentSale.endIso)}
                   </div>
 
@@ -221,7 +221,7 @@ export default function SalesPage() {
               }}>
                 다음 세일: {nextSale.name}
               </div>
-              <div style={{ fontSize: 13, color: "#a3a8a4" }}>
+              <div style={{ fontSize: 13, color: "var(--c-text-sub)" }}>
                 {fmtDate(nextSale.startIso)} 시작 예정
               </div>
             </div>
@@ -239,7 +239,7 @@ export default function SalesPage() {
         {/* 2026 세일 일정 그리드 */}
         <div style={{ marginBottom: 36 }}>
           <h2 style={{
-            fontSize: 22, fontWeight: 800, color: "#eef6f0",
+            fontSize: 22, fontWeight: 800, color: "var(--c-text-head)",
             margin: "0 0 20px", letterSpacing: -0.4,
             fontFamily: "'Noto Sans KR', system-ui, sans-serif",
           }}>
@@ -259,8 +259,8 @@ export default function SalesPage() {
                 <div
                   key={sale.id}
                   style={{
-                    background: isCurrent ? sale.bg : "#141716",
-                    border: `1px solid ${isCurrent ? sale.border : isPast ? "#1e2222" : "#272d2d"}`,
+                    background: isCurrent ? sale.bg : "var(--c-bg-panel)",
+                    border: `1px solid ${isCurrent ? sale.border : isPast ? "var(--c-border-div)" : "var(--c-border)"}`,
                     borderRadius: 14,
                     padding: "20px 22px",
                     opacity: isPast ? 0.55 : 1,
@@ -275,13 +275,13 @@ export default function SalesPage() {
                       <div>
                         <div style={{
                           fontSize: 15, fontWeight: 800,
-                          color: isCurrent ? sale.color : isPast ? "#7e827f" : "#eef6f0",
+                          color: isCurrent ? sale.color : isPast ? "var(--c-text-muted)" : "var(--c-text-head)",
                           marginBottom: 3,
                           fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                         }}>
                           {sale.name}
                         </div>
-                        <div style={{ fontSize: 12, color: "#7e827f" }}>
+                        <div style={{ fontSize: 12, color: "var(--c-text-muted)" }}>
                           {fmtDate(sale.startIso)} – {fmtDate(sale.endIso)}
                         </div>
                       </div>
@@ -291,7 +291,7 @@ export default function SalesPage() {
 
                   {/* 설명 */}
                   <p style={{
-                    fontSize: 13, color: isPast ? "#5a615d" : "#a3a8a4",
+                    fontSize: 13, color: isPast ? "var(--c-text-faint)" : "var(--c-text-sub)",
                     lineHeight: 1.65, margin: "0 0 12px",
                     fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                   }}>
@@ -316,7 +316,7 @@ export default function SalesPage() {
                   {/* 확인/추정 */}
                   <div style={{
                     fontSize: 11, fontWeight: 600,
-                    color: sale.confirmed ? "#5fd39a" : "#7e827f",
+                    color: sale.confirmed ? "#5fd39a" : "var(--c-text-muted)",
                     display: "flex", alignItems: "center", gap: 4,
                   }}>
                     {sale.confirmed ? "✓ 확인된 날짜" : "※ 날짜 추정"}
@@ -331,7 +331,7 @@ export default function SalesPage() {
         <div style={{
           padding: "16px 20px",
           background: "rgba(255,180,84,.05)", border: "1px solid rgba(255,180,84,.18)",
-          borderRadius: 10, fontSize: 13, color: "#a3a8a4", lineHeight: 1.65,
+          borderRadius: 10, fontSize: 13, color: "var(--c-text-sub)", lineHeight: 1.65,
           fontFamily: "'Noto Sans KR', system-ui, sans-serif",
         }}>
           ⚠️ 예정 날짜는 Steam 과거 세일 패턴 기반 추정입니다. 실제 날짜와 다를 수 있습니다.

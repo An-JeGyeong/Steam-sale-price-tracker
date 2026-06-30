@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
@@ -54,8 +54,8 @@ function PillToggle({ checked, onToggle }: { checked: boolean; onToggle: () => v
 }
 
 const PANEL_STYLE = {
-  background: "linear-gradient(180deg,#141716,#101212)",
-  border: "1px solid #1e2424",
+  background: "var(--c-bg-grad)",
+  border: "1px solid var(--c-border-alt)",
   borderRadius: 14,
   padding: "22px 24px",
   marginBottom: 18,
@@ -64,7 +64,7 @@ const PANEL_STYLE = {
 const PANEL_TITLE = {
   fontSize: 14,
   fontWeight: 800,
-  color: "#eef6f0",
+  color: "var(--c-text-head)",
   letterSpacing: -0.2,
   marginBottom: 16,
 } as const;
@@ -72,18 +72,18 @@ const PANEL_TITLE = {
 const LABEL_STYLE = {
   fontSize: 12,
   fontWeight: 600,
-  color: "#7e827f",
+  color: "var(--c-text-muted)",
   marginBottom: 6,
   display: "block",
 } as const;
 
 const INPUT_STYLE = {
   width: "100%",
-  background: "#0e1210",
-  border: "1px solid #272d2d",
+  background: "var(--c-bg-deep)",
+  border: "1px solid var(--c-border)",
   borderRadius: 9,
   padding: "9px 13px",
-  color: "#cfd3d0",
+  color: "var(--c-text-body2)",
   fontSize: 13,
   fontFamily: "'Noto Sans KR', system-ui, sans-serif",
   outline: "none",
@@ -143,7 +143,7 @@ export default function ProfilePage() {
       <div>
         <Nav />
         <div style={{ maxWidth: 860, margin: "80px auto", padding: "0 22px", textAlign: "center" }}>
-          <div style={{ fontSize: 14, color: "#7e827f" }}>불러오는 중…</div>
+          <div style={{ fontSize: 14, color: "var(--c-text-muted)" }}>불러오는 중…</div>
         </div>
       </div>
     );
@@ -155,8 +155,8 @@ export default function ProfilePage() {
         <Nav />
         <div style={{ maxWidth: 860, margin: "80px auto", padding: "0 22px", textAlign: "center" }}>
           <div style={{ fontSize: 42, marginBottom: 16 }}>🔒</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#e6ebe8", marginBottom: 8 }}>로그인이 필요합니다</div>
-          <div style={{ fontSize: 14, color: "#7e827f", marginBottom: 28 }}>마이페이지를 이용하려면 Steam으로 로그인해주세요.</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--c-text-alt)", marginBottom: 8 }}>로그인이 필요합니다</div>
+          <div style={{ fontSize: 14, color: "var(--c-text-muted)", marginBottom: 28 }}>마이페이지를 이용하려면 Steam으로 로그인해주세요.</div>
           <a
             href="/api/auth/steam"
             style={{
@@ -180,7 +180,7 @@ export default function ProfilePage() {
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "32px 22px 60px" }}>
 
         {/* 페이지 제목 */}
-        <div style={{ fontSize: 22, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, marginBottom: 28 }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: "var(--c-text-head)", letterSpacing: -0.4, marginBottom: 28 }}>
           마이페이지
         </div>
 
@@ -188,8 +188,8 @@ export default function ProfilePage() {
 
           {/* 왼쪽 카드 */}
           <div style={{
-            background: "linear-gradient(180deg,#141716,#101212)",
-            border: "1px solid #1e2424",
+            background: "var(--c-bg-grad)",
+            border: "1px solid var(--c-border-alt)",
             borderRadius: 16,
             padding: "28px 22px",
             textAlign: "center",
@@ -199,7 +199,7 @@ export default function ProfilePage() {
             {/* 아바타 90x90 */}
             <div style={{
               width: 90, height: 90, borderRadius: 20, overflow: "hidden",
-              background: "#1e2424", border: "2px solid rgba(67,194,130,.35)",
+              background: "var(--c-border-alt)", border: "2px solid rgba(67,194,130,.35)",
               margin: "0 auto 14px",
             }}>
               {effectiveAvatar ? (
@@ -217,7 +217,7 @@ export default function ProfilePage() {
             </div>
 
             {/* 이름 */}
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#eef6f0", marginBottom: 4 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--c-text-head)", marginBottom: 4 }}>
               {displayName}
             </div>
             <div style={{ fontSize: 12, color: "#5fd39a", fontWeight: 600, marginBottom: 24 }}>
@@ -247,8 +247,8 @@ export default function ProfilePage() {
                 type="submit"
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  fontSize: 13, fontWeight: 600, color: "#7e827f",
-                  background: "#0e1210", border: "1px solid #272d2d",
+                  fontSize: 13, fontWeight: 600, color: "var(--c-text-muted)",
+                  background: "var(--c-bg-deep)", border: "1px solid var(--c-border)",
                   padding: "9px 0", borderRadius: 10, cursor: "pointer",
                   fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                   width: "100%",
@@ -269,7 +269,7 @@ export default function ProfilePage() {
                 {/* 미리보기 56x56 */}
                 <div style={{
                   width: 56, height: 56, borderRadius: 12, overflow: "hidden",
-                  background: "#1e2424", border: "1.5px solid rgba(67,194,130,.3)", flexShrink: 0,
+                  background: "var(--c-border-alt)", border: "1.5px solid rgba(67,194,130,.3)", flexShrink: 0,
                 }}>
                   {avatarInput ? (
                     <img
@@ -310,8 +310,8 @@ export default function ProfilePage() {
                 <button
                   onClick={resetAvatar}
                   style={{
-                    fontSize: 13, fontWeight: 600, color: "#7e827f",
-                    background: "#0e1210", border: "1px solid #272d2d", borderRadius: 9,
+                    fontSize: 13, fontWeight: 600, color: "var(--c-text-muted)",
+                    background: "var(--c-bg-deep)", border: "1px solid var(--c-border)", borderRadius: 9,
                     padding: "8px 16px", cursor: "pointer",
                     fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                   }}
@@ -331,10 +331,10 @@ export default function ProfilePage() {
               <div style={PANEL_TITLE}>테마 설정</div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#dce3de" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--c-text-alt2)" }}>
                     {theme === "dark" ? "🌙 다크 모드" : "☀️ 라이트 모드"}
                   </div>
-                  <div style={{ fontSize: 12, color: "#7e827f", marginTop: 4 }}>
+                  <div style={{ fontSize: 12, color: "var(--c-text-muted)", marginTop: 4 }}>
                     {theme === "dark" ? "어두운 배경 테마를 사용 중입니다" : "밝은 배경 테마를 사용 중입니다"}
                   </div>
                 </div>
@@ -348,12 +348,12 @@ export default function ProfilePage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
                   <span style={LABEL_STYLE}>Steam 닉네임</span>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#cfd3d0" }}>{displayName}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--c-text-body2)" }}>{displayName}</div>
                 </div>
                 {profile.steamId && (
                   <div>
                     <span style={LABEL_STYLE}>Steam ID</span>
-                    <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, color: "#cfd3d0" }}>{profile.steamId}</div>
+                    <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, color: "var(--c-text-body2)" }}>{profile.steamId}</div>
                   </div>
                 )}
                 <div>

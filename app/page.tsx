@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useRef, useCallback, type CSSProperties } from "react";
 import Link from "next/link";
@@ -36,7 +36,7 @@ function discountColor(cut: number): string {
   if (cut >= 75) return "#5fd39a";
   if (cut >= 50) return "#43c282";
   if (cut >= 25) return "#e8b84b";
-  return "#a3a8a4";
+  return "var(--c-text-sub)";
 }
 
 function isDlc(item: DealItem): boolean {
@@ -100,17 +100,17 @@ function SkeletonRow({ i }: { i: number }) {
       gap: 0,
       padding: "11px 16px",
       background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,.018)",
-      borderBottom: "1px solid #1a1e1d",
+      borderBottom: "1px solid var(--c-border-row)",
       alignItems: "center",
     }}>
-      <div style={{ height: 12, width: 18, borderRadius: 4, background: "#1e2222" }} />
+      <div style={{ height: 12, width: 18, borderRadius: 4, background: "var(--c-border-div)" }} />
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <div style={{ width: 56, height: 40, borderRadius: 7, background: CAP_SM, flexShrink: 0 }} />
-        <div style={{ height: 13, borderRadius: 5, background: "#1e2222", width: "55%" }} />
+        <div style={{ height: 13, borderRadius: 5, background: "var(--c-border-div)", width: "55%" }} />
       </div>
       <div style={{ height: 22, width: 50, borderRadius: 6, background: "#1e2a22" }} />
       <div style={{ height: 12, width: 60, borderRadius: 4, background: "#181a1a" }} />
-      <div style={{ height: 16, width: 72, borderRadius: 5, background: "#1e2222" }} />
+      <div style={{ height: 16, width: 72, borderRadius: 5, background: "var(--c-border-div)" }} />
       <div style={{ height: 28, width: 60, borderRadius: 8, background: "#1a1d1a" }} />
     </div>
   );
@@ -120,18 +120,18 @@ function SkeletonRow({ i }: { i: number }) {
 function SkeletonEndingCard() {
   return (
     <div style={{
-      background: "linear-gradient(180deg,#141716,#101212)",
-      border: "1px solid #272d2d", borderRadius: 13,
+      background: "var(--c-bg-grad)",
+      border: "1px solid var(--c-border)", borderRadius: 13,
       padding: 13, display: "flex", gap: 12, alignItems: "center",
     }}>
       <div style={{ width: 54, height: 54, borderRadius: 9, background: CAP_SM, flexShrink: 0 }} />
       <div style={{ flex: 1 }}>
-        <div style={{ height: 14, borderRadius: 5, background: "#1e2222", width: "65%", marginBottom: 8 }} />
+        <div style={{ height: 14, borderRadius: 5, background: "var(--c-border-div)", width: "65%", marginBottom: 8 }} />
         <div style={{ height: 11, borderRadius: 4, background: "#1a1d1a", width: "45%" }} />
       </div>
       <div style={{ width: 52, textAlign: "right" }}>
         <div style={{ height: 11, borderRadius: 4, background: "#1e2a22", marginBottom: 6 }} />
-        <div style={{ height: 16, borderRadius: 5, background: "#1e2222" }} />
+        <div style={{ height: 16, borderRadius: 5, background: "var(--c-border-div)" }} />
       </div>
     </div>
   );
@@ -140,15 +140,15 @@ function SkeletonEndingCard() {
 /* ── skeleton tracked row ── */
 function SkeletonTrackedRow() {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 13, padding: "13px 0", borderTop: "1px solid #1e2222" }}>
-      <div style={{ width: 18, height: 12, borderRadius: 4, background: "#1e2222" }} />
+    <div style={{ display: "flex", alignItems: "center", gap: 13, padding: "13px 0", borderTop: "1px solid var(--c-border-div)" }}>
+      <div style={{ width: 18, height: 12, borderRadius: 4, background: "var(--c-border-div)" }} />
       <div style={{ width: 38, height: 38, borderRadius: 8, background: CAP_XS, flexShrink: 0 }} />
       <div style={{ flex: 1 }}>
-        <div style={{ height: 13, borderRadius: 5, background: "#1e2222", width: "60%", marginBottom: 6 }} />
+        <div style={{ height: 13, borderRadius: 5, background: "var(--c-border-div)", width: "60%", marginBottom: 6 }} />
         <div style={{ height: 10, borderRadius: 4, background: "#181a1a", width: "35%" }} />
       </div>
       <div style={{ width: 38, height: 18, borderRadius: 5, background: "#1e2a22" }} />
-      <div style={{ width: 64, height: 14, borderRadius: 4, background: "#1e2222" }} />
+      <div style={{ width: 64, height: 14, borderRadius: 4, background: "var(--c-border-div)" }} />
     </div>
   );
 }
@@ -212,13 +212,13 @@ function HeroSearch() {
     <div ref={wrapRef} style={{ position: "relative", maxWidth: 560, margin: "26px auto 0" }}>
       <div style={{
         height: 54,
-        background: "#141616",
-        border: "1px solid #2c4135",
+        background: "var(--c-bg-input)",
+        border: "1px solid var(--c-border-green)",
         borderRadius: showDropdown ? "14px 14px 0 0" : 14,
         display: "flex", alignItems: "center", gap: 12, padding: "0 18px",
         boxShadow: "0 8px 30px rgba(0,0,0,.3)",
       }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7e827f" strokeWidth="2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c-text-muted)" strokeWidth="2">
           <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
         </svg>
         <input
@@ -230,7 +230,7 @@ function HeroSearch() {
           placeholder="게임 이름을 검색하세요 (한글/영어)"
           style={{
             flex: 1, background: "none", border: "none", outline: "none",
-            color: "#cfd3d0", fontSize: 15, fontFamily: "'Noto Sans KR',system-ui,sans-serif",
+            color: "var(--c-text-body2)", fontSize: 15, fontFamily: "'Noto Sans KR',system-ui,sans-serif",
           }}
         />
         <button
@@ -259,15 +259,15 @@ function HeroSearch() {
       {showDropdown && (
         <div style={{
           position: "absolute", top: "100%", left: 0, right: 0,
-          background: "#141716", border: "1px solid #2c4135", borderTop: "none",
+          background: "var(--c-bg-panel)", border: "1px solid var(--c-border-green)", borderTop: "none",
           borderRadius: "0 0 14px 14px",
           zIndex: 50, overflow: "hidden",
           boxShadow: "0 16px 50px rgba(0,0,0,.55)",
         }}>
           {loading && results.length === 0 ? (
-            <div style={{ padding: "14px 18px", color: "#7e827f", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ padding: "14px 18px", color: "var(--c-text-muted)", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
               <svg width="14" height="14" viewBox="0 0 14 14" style={{ animation: "spin .7s linear infinite", flexShrink: 0 }}>
-                <circle cx="7" cy="7" r="5.5" fill="none" stroke="#2c4135" strokeWidth="2" />
+                <circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--c-border-green)" strokeWidth="2" />
                 <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#5fd39a" strokeWidth="2" strokeLinecap="round" fill="none" />
               </svg>
               검색 중…
@@ -281,9 +281,9 @@ function HeroSearch() {
                   display: "flex", alignItems: "center", gap: 12,
                   width: "100%", padding: "11px 18px",
                   background: "none", border: "none",
-                  borderBottom: i < results.length - 1 ? "1px solid #1e2222" : "none",
+                  borderBottom: i < results.length - 1 ? "1px solid var(--c-border-div)" : "none",
                   cursor: "pointer", textAlign: "left",
-                  color: "#cfd3d0", fontSize: 14, fontWeight: 600,
+                  color: "var(--c-text-body2)", fontSize: 14, fontWeight: 600,
                   fontFamily: "'Noto Sans KR',system-ui,sans-serif",
                 }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(67,194,130,.06)"; }}
@@ -292,13 +292,13 @@ function HeroSearch() {
                 {g.assets?.boxart ? (
                   <img src={g.assets.boxart} alt="" style={{ width: 46, height: 32, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                 ) : (
-                  <span style={{ width: 46, height: 32, borderRadius: 6, background: "#1a1d1d", flexShrink: 0, display: "inline-block" }} />
+                  <span style={{ width: 46, height: 32, borderRadius: 6, background: "var(--c-bg-fallback)", flexShrink: 0, display: "inline-block" }} />
                 )}
                 <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.title}</span>
               </button>
             ))
           ) : searched ? (
-            <div style={{ padding: "14px 18px", color: "#7e827f", fontSize: 13 }}>
+            <div style={{ padding: "14px 18px", color: "var(--c-text-muted)", fontSize: 13 }}>
               검색 결과가 없습니다
             </div>
           ) : null}
@@ -333,7 +333,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
         background: hovered
           ? "rgba(95,211,154,.05)"
           : isOdd ? "rgba(255,255,255,.018)" : "transparent",
-        borderBottom: "1px solid #1a1e1d",
+        borderBottom: "1px solid var(--c-border-row)",
         alignItems: "center",
         textDecoration: "none",
         transition: "background 0.12s",
@@ -341,7 +341,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
       }}
     >
       {/* rank */}
-      <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 600, color: "#3d4440" }}>
+      <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 600, color: "var(--c-text-dimmer)" }}>
         {rank}
       </span>
 
@@ -366,7 +366,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{
-            fontSize: 13.5, fontWeight: 700, color: "#dce3de",
+            fontSize: 13.5, fontWeight: 700, color: "var(--c-text-alt2)",
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           }}>
             {item.title}
@@ -410,7 +410,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
       {/* regular price */}
       <div style={{
         fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 500,
-        color: "#4a504d", textDecoration: "line-through",
+        color: "var(--c-text-dim)", textDecoration: "line-through",
       }}>
         {won(reg)}
       </div>
@@ -451,7 +451,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
 /* ── deal table header ── */
 function DealTableHeader() {
   const CELL: CSSProperties = {
-    fontSize: 11, fontWeight: 700, color: "#4a504d",
+    fontSize: 11, fontWeight: 700, color: "var(--c-text-dim)",
     letterSpacing: 0.6, textTransform: "uppercase",
     fontFamily: "'IBM Plex Mono',monospace",
   };
@@ -461,8 +461,8 @@ function DealTableHeader() {
       gridTemplateColumns: "40px 1fr 80px 100px 110px 96px",
       gap: 0,
       padding: "9px 16px",
-      borderBottom: "1px solid #222828",
-      background: "#111413",
+      borderBottom: "1px solid var(--c-border-div2)",
+      background: "var(--c-bg-header)",
       borderRadius: "12px 12px 0 0",
     }}>
       <span style={CELL}>#</span>
@@ -614,16 +614,16 @@ export default function HomePage() {
           <div style={{ marginBottom: 40 }}>
             {/* 헤더 */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--c-text-head)", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 8 }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#e8705f" stroke="none">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
                 내 찜목록 할인 중
-                {!wishLoading && <span style={{ fontSize: 12, fontWeight: 500, color: "#7e827f" }}>({wishSale.length}개)</span>}
+                {!wishLoading && <span style={{ fontSize: 12, fontWeight: 500, color: "var(--c-text-muted)" }}>({wishSale.length}개)</span>}
               </div>
               <Link
                 href="/wishlist"
-                style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12.5, fontWeight: 600, color: "#7e827f", textDecoration: "none" }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12.5, fontWeight: 600, color: "var(--c-text-muted)", textDecoration: "none" }}
               >
                 전체보기
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -636,10 +636,10 @@ export default function HomePage() {
             <div className="wish-scroll" style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8 }}>
               {wishLoading
                 ? Array.from({ length: 4 }, (_, i) => (
-                    <div key={i} style={{ flexShrink: 0, width: 180, background: "#141716", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden" }}>
+                    <div key={i} style={{ flexShrink: 0, width: 180, background: "var(--c-bg-panel)", border: "1px solid var(--c-border)", borderRadius: 12, overflow: "hidden" }}>
                       <div style={{ height: 90, background: "repeating-linear-gradient(45deg,transparent 0 12px,rgba(32,36,34,.55) 12px 24px),linear-gradient(135deg,#1c1f1e,#141716)" }} />
                       <div style={{ padding: "11px 13px" }}>
-                        <div style={{ height: 13, borderRadius: 5, background: "#1e2222", width: "70%", marginBottom: 8 }} />
+                        <div style={{ height: 13, borderRadius: 5, background: "var(--c-border-div)", width: "70%", marginBottom: 8 }} />
                         <div style={{ height: 18, borderRadius: 5, background: "#1e2a22", width: "50%" }} />
                       </div>
                     </div>
@@ -653,9 +653,9 @@ export default function HomePage() {
                         <Link
                           key={g.appId}
                           href={`/game/${g.itadId}?title=${encodeURIComponent(g.title)}&appid=${g.appId}`}
-                          style={{ flexShrink: 0, width: 180, background: "#141716", border: "1px solid #272d2d", borderRadius: 12, overflow: "hidden", textDecoration: "none" }}
+                          style={{ flexShrink: 0, width: 180, background: "var(--c-bg-panel)", border: "1px solid var(--c-border)", borderRadius: 12, overflow: "hidden", textDecoration: "none" }}
                         >
-                          <div style={{ height: 90, background: "#1a1d1d", overflow: "hidden", position: "relative" }}>
+                          <div style={{ height: 90, background: "var(--c-bg-fallback)", overflow: "hidden", position: "relative" }}>
                             <img src={imgSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}
                               onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                             <span style={{
@@ -673,12 +673,12 @@ export default function HomePage() {
                             )}
                           </div>
                           <div style={{ padding: "10px 12px" }}>
-                            <div style={{ fontSize: 12.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 5 }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--c-text-alt)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 5 }}>
                               {g.title}
                             </div>
                             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                               <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 14, fontWeight: 700, color: "#5fd39a" }}>{won(g.now)}</span>
-                              <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, color: "#4a504d", textDecoration: "line-through" }}>{won(g.old)}</span>
+                              <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, color: "var(--c-text-dim)", textDecoration: "line-through" }}>{won(g.old)}</span>
                             </div>
                           </div>
                         </Link>
@@ -689,7 +689,7 @@ export default function HomePage() {
                       href="/wishlist"
                       style={{
                         flexShrink: 0, width: 130,
-                        background: "#111413", border: "1px solid #272d2d", borderRadius: 12,
+                        background: "var(--c-bg-header)", border: "1px solid var(--c-border)", borderRadius: 12,
                         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                         gap: 8, textDecoration: "none",
                       }}
@@ -703,7 +703,7 @@ export default function HomePage() {
                           <path d="M9 18l6-6-6-6" />
                         </svg>
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#7e827f", textAlign: "center", lineHeight: 1.4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--c-text-muted)", textAlign: "center", lineHeight: 1.4 }}>
                         찜목록<br />전체보기
                       </span>
                     </Link>
@@ -716,13 +716,13 @@ export default function HomePage() {
 
         {/* ─── 할인 중인 게임 (SteamDB-style table) ─── */}
         <div style={{ margin: "42px 0 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontSize: 21, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9 }}>
+          <div style={{ fontSize: 21, fontWeight: 800, color: "var(--c-text-head)", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5fd39a" strokeWidth="2">
               <path d="M12 2c1 4 4 5 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 11 12 10 12 2z" />
             </svg>
             할인 중인 게임
             {loading && (
-              <span style={{ fontSize: 12, color: "#5a615d", fontWeight: 400, letterSpacing: 0 }}>
+              <span style={{ fontSize: 12, color: "var(--c-text-faint)", fontWeight: 400, letterSpacing: 0 }}>
                 불러오는 중…
               </span>
             )}
@@ -736,8 +736,8 @@ export default function HomePage() {
 
         {/* table */}
         <div style={{
-          background: "linear-gradient(180deg,#141716,#101212)",
-          border: "1px solid #1e2424", borderRadius: 12,
+          background: "var(--c-bg-grad)",
+          border: "1px solid var(--c-border-alt)", borderRadius: 12,
           overflow: "hidden",
         }}>
           <DealTableHeader />
@@ -747,15 +747,15 @@ export default function HomePage() {
               ? (
                 <div style={{ padding: "52px 0", textAlign: "center" }}>
                   <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
-                  <div style={{ fontSize: 14, color: "#7e827f", lineHeight: 1.7 }}>
+                  <div style={{ fontSize: 14, color: "var(--c-text-muted)", lineHeight: 1.7 }}>
                     Steam 할인 목록을 불러오지 못했습니다<br />
-                    <span style={{ fontSize: 12, color: "#4a504d" }}>{error}</span>
+                    <span style={{ fontSize: 12, color: "var(--c-text-dim)" }}>{error}</span>
                   </div>
                 </div>
               )
               : rawDeals.length === 0
                 ? (
-                  <div style={{ padding: "52px 0", textAlign: "center", color: "#5a615d", fontSize: 14 }}>
+                  <div style={{ padding: "52px 0", textAlign: "center", color: "var(--c-text-faint)", fontSize: 14 }}>
                     현재 Steam 할인 중인 게임이 없습니다
                   </div>
                 )
@@ -771,7 +771,7 @@ export default function HomePage() {
           }
           <Link href="/deals" style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-            padding: "13px", borderTop: "1px solid #1a1e1d",
+            padding: "13px", borderTop: "1px solid var(--c-border-row)",
             fontSize: 13, fontWeight: 700, color: "#5fd39a",
             textDecoration: "none", background: "transparent",
             transition: "background .12s",
@@ -789,7 +789,7 @@ export default function HomePage() {
           {/* 곧 끝나는 세일 */}
           <div>
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", margin: "42px 0 18px" }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: "var(--c-text-head)", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffb454" strokeWidth="2">
                   <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
                 </svg>
@@ -801,7 +801,7 @@ export default function HomePage() {
                 ? Array.from({ length: 4 }, (_, i) => <SkeletonEndingCard key={i} />)
                 : displayEndingDeals.length === 0
                   ? (
-                    <div style={{ gridColumn: "1/-1", padding: "28px 0", textAlign: "center", color: "#5a615d", fontSize: 13 }}>
+                    <div style={{ gridColumn: "1/-1", padding: "28px 0", textAlign: "center", color: "var(--c-text-faint)", fontSize: 13 }}>
                       현재 마감 임박 세일이 없습니다
                     </div>
                   )
@@ -810,12 +810,12 @@ export default function HomePage() {
                     void tick;
                     return (
                       <Link key={e.id} href={`/game/${e.id}?title=${encodeURIComponent(e.title)}`} style={{
-                        background: "linear-gradient(180deg,#141716,#101212)",
-                        border: "1px solid #272d2d", borderRadius: 13,
+                        background: "var(--c-bg-grad)",
+                        border: "1px solid var(--c-border)", borderRadius: 13,
                         padding: 13, display: "flex", gap: 12, alignItems: "center",
                         textDecoration: "none",
                       }}>
-                        <div style={{ width: 54, height: 54, borderRadius: 9, overflow: "hidden", background: CAP_SM, flexShrink: 0, border: "1px solid #272d2d" }}>
+                        <div style={{ width: 54, height: 54, borderRadius: 9, overflow: "hidden", background: CAP_SM, flexShrink: 0, border: "1px solid var(--c-border)" }}>
                           {(() => {
                             const eid = steamAppIdFromUrl(e.deal.url);
                             const esrc = e.assets?.boxart ?? (eid ? steamHeaderUrl(eid) : null);
@@ -835,14 +835,14 @@ export default function HomePage() {
                           })()}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13.5, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--c-text-alt)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
                           <div style={{ fontSize: 12, fontWeight: 600, color: cdColor(r), fontFamily: "'IBM Plex Mono',monospace", marginTop: 5, letterSpacing: 0.3 }}>
                             ⏳ {fmtCd(r)} 남음
                           </div>
                         </div>
                         <div style={{ textAlign: "right", flexShrink: 0 }}>
                           <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 600, color: "#5fd39a" }}>-{e.deal.cut}%</div>
-                          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700, color: "#e6ebe8", marginTop: 3 }}>{won(e.deal.price.amount)}</div>
+                          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700, color: "var(--c-text-alt)", marginTop: 3 }}>{won(e.deal.price.amount)}</div>
                         </div>
                       </Link>
                     );
@@ -859,18 +859,18 @@ export default function HomePage() {
             const hasLow    = lowGames.length > 0;
             return (
               <div>
-                <div style={{ fontSize: 21, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9, margin: "42px 0 18px" }}>
+                <div style={{ fontSize: 21, fontWeight: 800, color: "var(--c-text-head)", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9, margin: "42px 0 18px" }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5fd39a" strokeWidth="2">
                     <path d="M3 17l5-5 4 3 7-8" /><path d="M21 7v5h-5" />
                   </svg>
                   {hasLow ? "역대최저 갱신 중" : "할인율 TOP 게임"}
                 </div>
-                <div style={{ background: "linear-gradient(180deg,#141716,#101212)", border: "1px solid #272d2d", borderRadius: 14, padding: "0 18px" }}>
+                <div style={{ background: "var(--c-bg-grad)", border: "1px solid var(--c-border)", borderRadius: 14, padding: "0 18px" }}>
                   {loading
                     ? Array.from({ length: 6 }, (_, i) => <SkeletonTrackedRow key={i} />)
                     : topGames.length === 0
                       ? (
-                        <div style={{ padding: "32px 0", textAlign: "center", color: "#5a615d", fontSize: 13 }}>
+                        <div style={{ padding: "32px 0", textAlign: "center", color: "var(--c-text-faint)", fontSize: 13 }}>
                           데이터를 불러오는 중입니다
                         </div>
                       )
@@ -882,14 +882,14 @@ export default function HomePage() {
                             href={`/game/${item.id}?title=${encodeURIComponent(item.title)}`}
                             style={{
                               display: "flex", alignItems: "center", gap: 13, padding: "12px 0",
-                              borderTop: i === 0 ? "none" : "1px solid #1e2222",
+                              borderTop: i === 0 ? "none" : "1px solid var(--c-border-div)",
                               textDecoration: "none",
                             }}
                           >
-                            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 700, color: "#3d4440", width: 18, textAlign: "center", flexShrink: 0 }}>
+                            <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 700, color: "var(--c-text-dimmer)", width: 18, textAlign: "center", flexShrink: 0 }}>
                               {i + 1}
                             </span>
-                            <div style={{ width: 38, height: 38, borderRadius: 8, overflow: "hidden", background: CAP_XS, flexShrink: 0, border: "1px solid #272d2d" }}>
+                            <div style={{ width: 38, height: 38, borderRadius: 8, overflow: "hidden", background: CAP_XS, flexShrink: 0, border: "1px solid var(--c-border)" }}>
                               {(() => {
                                 const aid = steamAppIdFromUrl(item.deal.url);
                                 const src = item.assets?.boxart ?? (aid ? steamHeaderUrl(aid) : null);
@@ -909,7 +909,7 @@ export default function HomePage() {
                               })()}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: "#e6ebe8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--c-text-alt)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                 {item.title}
                               </div>
                               {isLow && (

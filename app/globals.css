@@ -1,25 +1,76 @@
 @import "tailwindcss";
 
 :root {
+  /* backgrounds */
   --c-bg-panel: #141716;
-  --c-bg-nested: #121414;
+  --c-bg-grad: linear-gradient(180deg,#141716,#101212);
+  --c-bg-header: #111413;
+  --c-bg-deep: #0e1210;
   --c-bg-input: #141616;
+  --c-bg-nested: #121414;
+  --c-bg-fallback: #1a1d1d;
+
+  /* borders */
   --c-border: #272d2d;
+  --c-border-alt: #1e2424;
   --c-border-div: #1e2222;
   --c-border-div2: #222727;
+  --c-border-row: #1a1e1d;
   --c-border-green: #2c4135;
+
+  /* text */
   --c-text-title: #f2f8f4;
   --c-text-head: #eef6f0;
+  --c-text-alt: #e6ebe8;
+  --c-text-alt2: #dce3de;
   --c-text-body: #cdd6d2;
   --c-text-body2: #cfd3d0;
   --c-text-sub: #a3a8a4;
   --c-text-muted: #7e827f;
   --c-text-muted2: #828783;
+  --c-text-dim: #4a504d;
+  --c-text-dimmer: #3d4440;
+  --c-text-faint: #5a615d;
+
+  /* accents (unchanged in light mode) */
   --c-green: #5fd39a;
   --c-green-chart: #43c282;
   --c-green-bg: #0a120d;
   --c-amber: #ffb454;
   --c-red: #e8705f;
+}
+
+[data-theme="light"] {
+  /* backgrounds */
+  --c-bg-panel: #f5f8f6;
+  --c-bg-grad: linear-gradient(180deg,#f5f8f6,#edf1ef);
+  --c-bg-header: #e9eeec;
+  --c-bg-deep: #e4e9e7;
+  --c-bg-input: #f0f4f2;
+  --c-bg-nested: #edf1ef;
+  --c-bg-fallback: #dde4e0;
+
+  /* borders */
+  --c-border: #c8d4ce;
+  --c-border-alt: #bfccc6;
+  --c-border-div: #c2cecc;
+  --c-border-div2: #bac6c0;
+  --c-border-row: #c4d0ca;
+  --c-border-green: #7ab89a;
+
+  /* text */
+  --c-text-title: #0e1a12;
+  --c-text-head: #1a2a1e;
+  --c-text-alt: #1e2e26;
+  --c-text-alt2: #253228;
+  --c-text-body: #2e3c34;
+  --c-text-body2: #303e36;
+  --c-text-sub: #4e6258;
+  --c-text-muted: #5c6e64;
+  --c-text-muted2: #606e65;
+  --c-text-dim: #6a7c72;
+  --c-text-dimmer: #708070;
+  --c-text-faint: #627068;
 }
 
 @theme inline {
@@ -70,10 +121,10 @@ nav.site-nav {
 /* 라이트 모드 */
 [data-theme="light"] body {
   background: linear-gradient(180deg, #f2f5f3 0%, #eaeeec 100%) !important;
-  color: #1a2a1e !important;
+  color: var(--c-text-body2) !important;
 }
 
 [data-theme="light"] nav.site-nav {
   background: rgba(245, 252, 248, .96) !important;
-  border-bottom-color: #c8d8cc !important;
+  border-bottom-color: var(--c-border) !important;
 }

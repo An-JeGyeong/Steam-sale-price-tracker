@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -7,7 +7,7 @@ import type { GameSearchResult } from "@/lib/itad";
 import { useTheme } from "@/app/theme-provider";
 
 const SearchIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7e827f" strokeWidth="2">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-text-muted)" strokeWidth="2">
     <circle cx="11" cy="11" r="7" />
     <path d="m20 20-3.5-3.5" />
   </svg>
@@ -79,8 +79,8 @@ function NavSearchBox() {
     <div ref={wrapRef} style={{ position: "relative", flex: 1, maxWidth: 420 }}>
       <div style={{
         height: 38,
-        background: "#141616",
-        border: `1px solid ${showDropdown ? "#2c4135" : "#272d2d"}`,
+        background: "var(--c-bg-input)",
+        border: `1px solid ${showDropdown ? "var(--c-border-green)" : "var(--c-border)"}`,
         borderRadius: showDropdown ? "9px 9px 0 0" : 9,
         display: "flex", alignItems: "center", gap: 9, padding: "0 13px",
         transition: "border-color .15s",
@@ -95,12 +95,12 @@ function NavSearchBox() {
           placeholder="게임 검색…"
           style={{
             flex: 1, background: "none", border: "none", outline: "none",
-            color: "#cfd3d0", fontSize: 13, fontFamily: "'Noto Sans KR', system-ui, sans-serif",
+            color: "var(--c-text-body2)", fontSize: 13, fontFamily: "'Noto Sans KR', system-ui, sans-serif",
           }}
         />
         {loading && (
           <svg width="14" height="14" viewBox="0 0 14 14" style={{ animation: "spin .7s linear infinite", flexShrink: 0 }}>
-            <circle cx="7" cy="7" r="5.5" fill="none" stroke="#2c4135" strokeWidth="2" />
+            <circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--c-border-green)" strokeWidth="2" />
             <path d="M7 1.5A5.5 5.5 0 0 1 12.5 7" stroke="#5fd39a" strokeWidth="2" strokeLinecap="round" fill="none" />
           </svg>
         )}
@@ -108,13 +108,13 @@ function NavSearchBox() {
       {showDropdown && (
         <div style={{
           position: "absolute", top: "100%", left: 0, right: 0,
-          background: "#141716", border: "1px solid #2c4135", borderTop: "none",
+          background: "var(--c-bg-panel)", border: "1px solid var(--c-border-green)", borderTop: "none",
           borderRadius: "0 0 10px 10px",
           zIndex: 100, overflow: "hidden",
           boxShadow: "0 12px 40px rgba(0,0,0,.55)",
         }}>
           {loading && results.length === 0 ? (
-            <div style={{ padding: "11px 13px", color: "#7e827f", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ padding: "11px 13px", color: "var(--c-text-muted)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
               <span>검색 중…</span>
             </div>
           ) : results.length > 0 ? (
@@ -126,9 +126,9 @@ function NavSearchBox() {
                   display: "flex", alignItems: "center", gap: 11,
                   width: "100%", padding: "9px 13px",
                   background: "none", border: "none",
-                  borderBottom: i < results.length - 1 ? "1px solid #1e2222" : "none",
+                  borderBottom: i < results.length - 1 ? "1px solid var(--c-border-div)" : "none",
                   cursor: "pointer", textAlign: "left",
-                  color: "#cfd3d0", fontSize: 13, fontWeight: 600,
+                  color: "var(--c-text-body2)", fontSize: 13, fontWeight: 600,
                   fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                 }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(67,194,130,.06)"; }}
@@ -137,13 +137,13 @@ function NavSearchBox() {
                 {g.assets?.boxart ? (
                   <img src={g.assets.boxart} alt="" style={{ width: 40, height: 28, borderRadius: 5, objectFit: "cover", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                 ) : (
-                  <span style={{ width: 40, height: 28, borderRadius: 5, background: "#1a1d1d", flexShrink: 0, display: "inline-block" }} />
+                  <span style={{ width: 40, height: 28, borderRadius: 5, background: "var(--c-bg-fallback)", flexShrink: 0, display: "inline-block" }} />
                 )}
                 <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.title}</span>
               </button>
             ))
           ) : searched ? (
-            <div style={{ padding: "11px 13px", color: "#7e827f", fontSize: 12 }}>
+            <div style={{ padding: "11px 13px", color: "var(--c-text-muted)", fontSize: 12 }}>
               검색 결과가 없습니다
             </div>
           ) : null}
@@ -156,13 +156,13 @@ function NavSearchBox() {
 interface SteamProfile { name: string; avatar: string }
 
 const NAV_LINK_STYLE = {
-  fontSize: 14, fontWeight: 600, color: "#a3a8a4", textDecoration: "none",
+  fontSize: 14, fontWeight: 600, color: "var(--c-text-sub)", textDecoration: "none",
 } as const;
 
 const DROP_LINK_BASE = {
   display: "flex", alignItems: "center", gap: 10,
   padding: "10px 16px",
-  fontSize: 13, fontWeight: 600, color: "#cfd3d0",
+  fontSize: 13, fontWeight: 600, color: "var(--c-text-body2)",
   textDecoration: "none", background: "transparent",
 } as const;
 
@@ -198,7 +198,7 @@ export default function Nav() {
   const avatarEl = (size: number, radius: number) => (
     <div style={{
       width: size, height: size, borderRadius: radius, overflow: "hidden",
-      background: "#1e2424", border: "1.5px solid rgba(67,194,130,.35)", flexShrink: 0,
+      background: "var(--c-border-alt)", border: "1.5px solid rgba(67,194,130,.35)", flexShrink: 0,
     }}>
       {profile?.avatar ? (
         <img
@@ -224,7 +224,7 @@ export default function Nav() {
         {/* 로고 */}
         <Link href="/" style={{
           display: "flex", alignItems: "center", gap: 9, flexShrink: 0,
-          fontWeight: 800, fontSize: 16, letterSpacing: "-0.3px", color: "#eef6f0",
+          fontWeight: 800, fontSize: 16, letterSpacing: "-0.3px", color: "var(--c-text-head)",
           textDecoration: "none",
         }}>
           <span style={{
@@ -257,7 +257,7 @@ export default function Nav() {
               {/* 트리거: 아바타 + 이름 */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
                 {avatarEl(30, 8)}
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#e6ebe8", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--c-text-alt)", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {profile.name}
                 </span>
               </div>
@@ -272,8 +272,8 @@ export default function Nav() {
                     top: "calc(100% + 6px)",
                     right: 0,
                     minWidth: 220,
-                    background: "#141716",
-                    border: "1px solid #2c4135",
+                    background: "var(--c-bg-panel)",
+                    border: "1px solid var(--c-border-green)",
                     borderRadius: 12,
                     boxShadow: "0 16px 50px rgba(0,0,0,.6)",
                     zIndex: 200,
@@ -290,17 +290,17 @@ export default function Nav() {
                   >
                     {avatarEl(32, 8)}
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#e6ebe8" }}>{profile.name}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--c-text-alt)" }}>{profile.name}</div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: "#5fd39a", marginTop: 2 }}>마이페이지 →</div>
                     </div>
                   </Link>
 
                   {/* 2. 구분선 */}
-                  <div style={{ height: 1, background: "#1e2424", margin: "0 12px" }} />
+                  <div style={{ height: 1, background: "var(--c-border-alt)", margin: "0 12px" }} />
 
                   {/* 3. 테마 토글 */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "11px 16px" }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#cfd3d0" }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--c-text-body2)" }}>
                       {theme === "dark" ? "🌙 다크 모드" : "☀️ 라이트 모드"}
                     </span>
                     <button
@@ -334,7 +334,7 @@ export default function Nav() {
                   </div>
 
                   {/* 4. 구분선 */}
-                  <div style={{ height: 1, background: "#1e2424", margin: "0 12px" }} />
+                  <div style={{ height: 1, background: "var(--c-border-alt)", margin: "0 12px" }} />
 
                   {/* 5. 마이페이지 */}
                   <Link
@@ -367,7 +367,7 @@ export default function Nav() {
                   </Link>
 
                   {/* 8. 구분선 */}
-                  <div style={{ height: 1, background: "#1e2424", margin: "0 12px" }} />
+                  <div style={{ height: 1, background: "var(--c-border-alt)", margin: "0 12px" }} />
 
                   {/* 9. 로그아웃 */}
                   <form action="/api/auth/logout" method="POST" style={{ margin: 0 }}>
@@ -376,7 +376,7 @@ export default function Nav() {
                       style={{
                         display: "flex", alignItems: "center", gap: 10,
                         width: "100%", padding: "11px 16px",
-                        fontSize: 13, fontWeight: 600, color: "#7e827f",
+                        fontSize: 13, fontWeight: 600, color: "var(--c-text-muted)",
                         background: "none", border: "none", cursor: "pointer",
                         fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                         textAlign: "left",
@@ -387,7 +387,7 @@ export default function Nav() {
                       }}
                       onMouseLeave={(e) => {
                         (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-                        (e.currentTarget as HTMLButtonElement).style.color = "#7e827f";
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--c-text-muted)";
                       }}
                     >
                       <span>↪</span><span>로그아웃</span>
@@ -405,7 +405,7 @@ export default function Nav() {
                 style={{
                   width: 32, height: 32,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "#141616", border: "1px solid #272d2d",
+                  background: "var(--c-bg-input)", border: "1px solid var(--c-border)",
                   borderRadius: 8, cursor: "pointer", fontSize: 16,
                   flexShrink: 0,
                 }}

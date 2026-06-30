@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback, type CSSProperties } from "react";
 import Link from "next/link";
@@ -26,7 +26,7 @@ function discountColor(cut: number): string {
   if (cut >= 75) return "#5fd39a";
   if (cut >= 50) return "#43c282";
   if (cut >= 25) return "#e8b84b";
-  return "#a3a8a4";
+  return "var(--c-text-sub)";
 }
 
 function won(n: number) {
@@ -36,7 +36,7 @@ function won(n: number) {
 /* ── 테이블 헤더 ── */
 function DealTableHeader() {
   const CELL: CSSProperties = {
-    fontSize: 11, fontWeight: 700, color: "#4a504d",
+    fontSize: 11, fontWeight: 700, color: "var(--c-text-dim)",
     letterSpacing: 0.6, textTransform: "uppercase",
     fontFamily: "'IBM Plex Mono',monospace",
   };
@@ -46,8 +46,8 @@ function DealTableHeader() {
       gridTemplateColumns: "40px 1fr 80px 100px 110px 96px",
       gap: 0,
       padding: "9px 16px",
-      borderBottom: "1px solid #222828",
-      background: "#111413",
+      borderBottom: "1px solid var(--c-border-div2)",
+      background: "var(--c-bg-header)",
       borderRadius: "12px 12px 0 0",
     }}>
       <span style={CELL}>#</span>
@@ -85,7 +85,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
         background: hovered
           ? "rgba(95,211,154,.05)"
           : isOdd ? "rgba(255,255,255,.018)" : "transparent",
-        borderBottom: "1px solid #1a1e1d",
+        borderBottom: "1px solid var(--c-border-row)",
         alignItems: "center",
         textDecoration: "none",
         transition: "background 0.12s",
@@ -93,7 +93,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
       }}
     >
       {/* 순위 */}
-      <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 600, color: "#3d4440" }}>
+      <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 13, fontWeight: 600, color: "var(--c-text-dimmer)" }}>
         {rank}
       </span>
 
@@ -117,7 +117,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
           )}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: "#dce3de", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--c-text-alt2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {item.title}
           </div>
           {(isDlcItem || isLow) && (
@@ -141,7 +141,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
       </div>
 
       {/* 정가 */}
-      <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 500, color: "#4a504d", textDecoration: "line-through" }}>
+      <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 500, color: "var(--c-text-dim)", textDecoration: "line-through" }}>
         {won(reg)}
       </div>
 
@@ -178,17 +178,17 @@ function SkeletonRow({ i }: { i: number }) {
       gap: 0,
       padding: "11px 16px",
       background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,.018)",
-      borderBottom: "1px solid #1a1e1d",
+      borderBottom: "1px solid var(--c-border-row)",
       alignItems: "center",
     }}>
-      <div style={{ height: 12, width: 18, borderRadius: 4, background: "#1e2222" }} />
+      <div style={{ height: 12, width: 18, borderRadius: 4, background: "var(--c-border-div)" }} />
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         <div style={{ width: 56, height: 40, borderRadius: 7, background: CAP_SM, flexShrink: 0 }} />
-        <div style={{ height: 13, borderRadius: 5, background: "#1e2222", width: "55%" }} />
+        <div style={{ height: 13, borderRadius: 5, background: "var(--c-border-div)", width: "55%" }} />
       </div>
       <div style={{ height: 22, width: 50, borderRadius: 6, background: "#1e2a22" }} />
       <div style={{ height: 12, width: 60, borderRadius: 4, background: "#181a1a" }} />
-      <div style={{ height: 16, width: 72, borderRadius: 5, background: "#1e2222" }} />
+      <div style={{ height: 16, width: 72, borderRadius: 5, background: "var(--c-border-div)" }} />
       <div style={{ height: 28, width: 60, borderRadius: 8, background: "#1a1d1a" }} />
     </div>
   );
@@ -226,7 +226,7 @@ function SidebarBtn({
         display: "block", width: "100%", textAlign: "left",
         padding: "8px 12px", borderRadius: 8, marginBottom: 4,
         fontSize: 13, fontWeight: active ? 700 : 500,
-        color: active ? "#5fd39a" : "#a3a8a4",
+        color: active ? "#5fd39a" : "var(--c-text-sub)",
         background: active ? "rgba(95,211,154,.1)" : "transparent",
         border: active ? "1px solid rgba(95,211,154,.25)" : "1px solid transparent",
         cursor: "pointer",
@@ -294,7 +294,7 @@ export default function DealsPage() {
   function handleType(k: TypeFilter) { setTypeFilter(k); resetPage(); }
 
   const SIDEBAR_SECTION_TITLE: CSSProperties = {
-    fontSize: 11, fontWeight: 800, color: "#4a504d",
+    fontSize: 11, fontWeight: 800, color: "var(--c-text-dim)",
     letterSpacing: 0.8, textTransform: "uppercase",
     fontFamily: "'IBM Plex Mono',monospace",
     marginBottom: 8, marginTop: 20,
@@ -316,11 +316,11 @@ export default function DealsPage() {
               onChange={(e) => handleSearch(e.target.value)}
               style={{
                 width: "100%",
-                background: "#0e1210",
-                border: "1px solid #272d2d",
+                background: "var(--c-bg-deep)",
+                border: "1px solid var(--c-border)",
                 borderRadius: 9,
                 padding: "9px 13px",
-                color: "#cfd3d0",
+                color: "var(--c-text-body2)",
                 fontSize: 13,
                 fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                 outline: "none",
@@ -347,7 +347,7 @@ export default function DealsPage() {
 
             {/* 결과 수 */}
             {!loading && (
-              <div style={{ marginTop: 20, fontSize: 12, fontWeight: 600, color: "#7e827f" }}>
+              <div style={{ marginTop: 20, fontSize: 12, fontWeight: 600, color: "var(--c-text-muted)" }}>
                 총 {filtered.length}개
               </div>
             )}
@@ -357,13 +357,13 @@ export default function DealsPage() {
           <div>
             {/* 헤더 */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: "var(--c-text-head)", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 9 }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5fd39a" strokeWidth="2">
                   <path d="M12 2c1 4 4 5 4 9a4 4 0 0 1-8 0c0-1 .5-2 1-2.5C9 11 12 10 12 2z" />
                 </svg>
                 할인 중인 게임
                 {!loading && (
-                  <span style={{ fontSize: 13, fontWeight: 500, color: "#7e827f", letterSpacing: 0 }}>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: "var(--c-text-muted)", letterSpacing: 0 }}>
                     ({filtered.length}개)
                   </span>
                 )}
@@ -376,19 +376,19 @@ export default function DealsPage() {
             </div>
 
             {/* 테이블 */}
-            <div style={{ background: "linear-gradient(180deg,#141716,#101212)", border: "1px solid #1e2424", borderRadius: 12, overflow: "hidden" }}>
+            <div style={{ background: "var(--c-bg-grad)", border: "1px solid var(--c-border-alt)", borderRadius: 12, overflow: "hidden" }}>
               <DealTableHeader />
               {loading ? (
                 Array.from({ length: 12 }, (_, i) => <SkeletonRow key={i} i={i} />)
               ) : error ? (
                 <div style={{ padding: "52px 0", textAlign: "center" }}>
                   <div style={{ fontSize: 32, marginBottom: 12 }}>⚠️</div>
-                  <div style={{ fontSize: 14, color: "#7e827f" }}>
+                  <div style={{ fontSize: 14, color: "var(--c-text-muted)" }}>
                     할인 목록을 불러오지 못했습니다
                   </div>
                 </div>
               ) : filtered.length === 0 ? (
-                <div style={{ padding: "52px 0", textAlign: "center", color: "#5a615d", fontSize: 14 }}>
+                <div style={{ padding: "52px 0", textAlign: "center", color: "var(--c-text-faint)", fontSize: 14 }}>
                   {searchTerm ? `"${searchTerm}" 검색 결과가 없습니다` : "현재 할인 중인 게임이 없습니다"}
                 </div>
               ) : (
@@ -411,15 +411,15 @@ export default function DealsPage() {
                   disabled={safePage === 0}
                   style={{
                     padding: "8px 18px", borderRadius: 9, fontSize: 13, fontWeight: 700,
-                    color: safePage === 0 ? "#3d4440" : "#cfd3d0",
-                    background: "#141716", border: "1px solid #272d2d",
+                    color: safePage === 0 ? "var(--c-text-dimmer)" : "var(--c-text-body2)",
+                    background: "var(--c-bg-panel)", border: "1px solid var(--c-border)",
                     cursor: safePage === 0 ? "not-allowed" : "pointer",
                     fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                   }}
                 >
                   이전
                 </button>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#7e827f", fontFamily: "'IBM Plex Mono',monospace" }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--c-text-muted)", fontFamily: "'IBM Plex Mono',monospace" }}>
                   {safePage + 1} / {totalPages}
                 </span>
                 <button
@@ -427,8 +427,8 @@ export default function DealsPage() {
                   disabled={safePage >= totalPages - 1}
                   style={{
                     padding: "8px 18px", borderRadius: 9, fontSize: 13, fontWeight: 700,
-                    color: safePage >= totalPages - 1 ? "#3d4440" : "#cfd3d0",
-                    background: "#141716", border: "1px solid #272d2d",
+                    color: safePage >= totalPages - 1 ? "var(--c-text-dimmer)" : "var(--c-text-body2)",
+                    background: "var(--c-bg-panel)", border: "1px solid var(--c-border)",
                     cursor: safePage >= totalPages - 1 ? "not-allowed" : "pointer",
                     fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                   }}

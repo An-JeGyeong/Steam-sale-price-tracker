@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Nav from "@/components/Nav";
@@ -83,7 +83,7 @@ type FilterTab = "전체" | "버그제보" | "기능개선" | "기타";
 const TYPE_BADGE: Record<PostType, { bg: string; color: string }> = {
   "버그제보": { bg: "rgba(232,112,95,.15)", color: "#e8705f" },
   "기능개선": { bg: "rgba(95,211,154,.15)", color: "#5fd39a" },
-  "기타": { bg: "rgba(163,168,164,.15)", color: "#a3a8a4" },
+  "기타": { bg: "rgba(163,168,164,.15)", color: "var(--c-text-sub)" },
 };
 
 const FILTER_TABS: FilterTab[] = ["전체", "버그제보", "기능개선", "기타"];
@@ -145,11 +145,11 @@ export default function FeedbackPage() {
 
   const INPUT_STYLE: React.CSSProperties = {
     width: "100%",
-    background: "#0e1210",
-    border: "1px solid #272d2d",
+    background: "var(--c-bg-deep)",
+    border: "1px solid var(--c-border)",
     borderRadius: 9,
     padding: "9px 13px",
-    color: "#cfd3d0",
+    color: "var(--c-text-body2)",
     fontSize: 13,
     fontFamily: "'Noto Sans KR', system-ui, sans-serif",
     outline: "none",
@@ -163,10 +163,10 @@ export default function FeedbackPage() {
 
         {/* 헤더 */}
         <div style={{ marginBottom: 30 }}>
-          <div style={{ fontSize: 24, fontWeight: 800, color: "#eef6f0", letterSpacing: -0.4, marginBottom: 6 }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--c-text-head)", letterSpacing: -0.4, marginBottom: 6 }}>
             피드백 &amp; 제안
           </div>
-          <div style={{ fontSize: 14, color: "#7e827f" }}>
+          <div style={{ fontSize: 14, color: "var(--c-text-muted)" }}>
             서비스 개선을 위한 의견을 남겨주세요
           </div>
         </div>
@@ -191,10 +191,10 @@ export default function FeedbackPage() {
           </button>
 
           {formOpen && (
-            <div style={{ background: "linear-gradient(180deg,#141716,#101212)", border: "1px solid #1e2424", borderRadius: 14, padding: "22px 24px" }}>
+            <div style={{ background: "var(--c-bg-grad)", border: "1px solid var(--c-border-alt)", borderRadius: 14, padding: "22px 24px" }}>
               {/* 타입 선택 */}
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#7e827f", marginBottom: 8 }}>분류</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--c-text-muted)", marginBottom: 8 }}>분류</div>
                 <div style={{ display: "flex", gap: 8 }}>
                   {(["버그제보", "기능개선", "기타"] as PostType[]).map((t) => (
                     <button
@@ -202,9 +202,9 @@ export default function FeedbackPage() {
                       onClick={() => setFormType(t)}
                       style={{
                         padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: 700,
-                        color: formType === t ? TYPE_BADGE[t].color : "#7e827f",
+                        color: formType === t ? TYPE_BADGE[t].color : "var(--c-text-muted)",
                         background: formType === t ? TYPE_BADGE[t].bg : "transparent",
-                        border: `1px solid ${formType === t ? TYPE_BADGE[t].color : "#272d2d"}`,
+                        border: `1px solid ${formType === t ? TYPE_BADGE[t].color : "var(--c-border)"}`,
                         cursor: "pointer",
                         fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                         transition: "all 0.12s",
@@ -218,7 +218,7 @@ export default function FeedbackPage() {
 
               {/* 제목 */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: "#7e827f", display: "block", marginBottom: 6 }}>제목</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--c-text-muted)", display: "block", marginBottom: 6 }}>제목</label>
                 <input
                   type="text"
                   value={formTitle}
@@ -230,7 +230,7 @@ export default function FeedbackPage() {
 
               {/* 내용 */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: "#7e827f", display: "block", marginBottom: 6 }}>내용</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--c-text-muted)", display: "block", marginBottom: 6 }}>내용</label>
                 <textarea
                   value={formContent}
                   onChange={(e) => setFormContent(e.target.value)}
@@ -242,7 +242,7 @@ export default function FeedbackPage() {
 
               {/* 작성자 */}
               <div style={{ marginBottom: 18 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: "#7e827f", display: "block", marginBottom: 6 }}>작성자</label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--c-text-muted)", display: "block", marginBottom: 6 }}>작성자</label>
                 <input
                   type="text"
                   value={formAuthor}
@@ -286,9 +286,9 @@ export default function FeedbackPage() {
               onClick={() => setFilterTab(tab)}
               style={{
                 padding: "7px 16px", borderRadius: 9, fontSize: 13, fontWeight: 700,
-                color: filterTab === tab ? "#5fd39a" : "#7e827f",
+                color: filterTab === tab ? "#5fd39a" : "var(--c-text-muted)",
                 background: filterTab === tab ? "rgba(95,211,154,.1)" : "transparent",
-                border: `1px solid ${filterTab === tab ? "rgba(95,211,154,.3)" : "#272d2d"}`,
+                border: `1px solid ${filterTab === tab ? "rgba(95,211,154,.3)" : "var(--c-border)"}`,
                 cursor: "pointer",
                 fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                 transition: "all 0.12s",
@@ -296,7 +296,7 @@ export default function FeedbackPage() {
             >
               {tab}
               {tab !== "전체" && (
-                <span style={{ marginLeft: 6, fontSize: 11, color: filterTab === tab ? "#5fd39a" : "#4a504d" }}>
+                <span style={{ marginLeft: 6, fontSize: 11, color: filterTab === tab ? "#5fd39a" : "var(--c-text-dim)" }}>
                   ({posts.filter((p) => p.type === tab).length})
                 </span>
               )}
@@ -307,7 +307,7 @@ export default function FeedbackPage() {
         {/* 게시글 목록 */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {filtered.length === 0 ? (
-            <div style={{ padding: "48px 0", textAlign: "center", color: "#5a615d", fontSize: 14 }}>
+            <div style={{ padding: "48px 0", textAlign: "center", color: "var(--c-text-faint)", fontSize: 14 }}>
               게시글이 없습니다
             </div>
           ) : (
@@ -317,8 +317,8 @@ export default function FeedbackPage() {
                 <div
                   key={post.id}
                   style={{
-                    background: "linear-gradient(180deg,#141716,#101212)",
-                    border: "1px solid #1e2424",
+                    background: "var(--c-bg-grad)",
+                    border: "1px solid var(--c-border-alt)",
                     borderRadius: 13,
                     padding: "18px 20px",
                   }}
@@ -328,14 +328,14 @@ export default function FeedbackPage() {
                     <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.4, color: badge.color, background: badge.bg, padding: "3px 9px", borderRadius: 5, flexShrink: 0 }}>
                       {post.type}
                     </span>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#e6ebe8", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--c-text-alt)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {post.title}
                     </div>
                   </div>
 
                   {/* 내용 미리보기 (2줄) */}
                   <div style={{
-                    fontSize: 13, color: "#a3a8a4", lineHeight: 1.6,
+                    fontSize: 13, color: "var(--c-text-sub)", lineHeight: 1.6,
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",
@@ -348,10 +348,10 @@ export default function FeedbackPage() {
                   {/* 푸터 라인 */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "#5a615d" }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--c-text-faint)" }}>
                         {post.author}
                       </span>
-                      <span style={{ fontSize: 11, color: "#3d4440" }}>
+                      <span style={{ fontSize: 11, color: "var(--c-text-dimmer)" }}>
                         {new Date(post.createdAt).toLocaleDateString("ko-KR")}
                       </span>
                     </div>
@@ -361,8 +361,8 @@ export default function FeedbackPage() {
                       onClick={() => handleUpvote(post.id)}
                       style={{
                         display: "inline-flex", alignItems: "center", gap: 5,
-                        fontSize: 12, fontWeight: 700, color: "#7e827f",
-                        background: "rgba(163,168,164,.07)", border: "1px solid #272d2d",
+                        fontSize: 12, fontWeight: 700, color: "var(--c-text-muted)",
+                        background: "rgba(163,168,164,.07)", border: "1px solid var(--c-border)",
                         padding: "5px 12px", borderRadius: 8, cursor: "pointer",
                         fontFamily: "'Noto Sans KR', system-ui, sans-serif",
                         transition: "all 0.12s",
@@ -372,8 +372,8 @@ export default function FeedbackPage() {
                         (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(95,211,154,.3)";
                       }}
                       onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.color = "#7e827f";
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = "#272d2d";
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--c-text-muted)";
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--c-border)";
                       }}
                     >
                       <span>👍</span>
