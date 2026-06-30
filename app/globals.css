@@ -151,6 +151,12 @@ body {
 
   /* 홈 페이지 — 카운트다운 2열 유지 */
   .resp-col-2 { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* 딜 테이블 — 모바일 4컬럼 (정가/구매 숨김) */
+  .deal-table-hd,
+  .deal-table-row { grid-template-columns: 32px 1fr 68px 88px !important; }
+  .deal-col-reg,
+  .deal-col-buy  { display: none !important; }
 }
 
 /* Nav CSS 클래스 (인라인 스타일 대신 사용) */

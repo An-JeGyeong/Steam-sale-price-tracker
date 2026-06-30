@@ -242,7 +242,7 @@ function HeroSearch() {
             cursor: "pointer", border: "none",
             fontFamily: "'Noto Sans KR',system-ui,sans-serif",
             display: "flex", alignItems: "center", gap: 6,
-            transition: "background .15s",
+            transition: "background .15s", whiteSpace: "nowrap",
           }}
         >
           {loading ? (
@@ -322,6 +322,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
 
   return (
     <Link
+      className="deal-table-row"
       href={`/game/${item.id}?title=${encodeURIComponent(item.title)}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -408,7 +409,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
       </div>
 
       {/* regular price */}
-      <div style={{
+      <div className="deal-col-reg" style={{
         fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 500,
         color: "var(--c-text-dim)", textDecoration: "line-through",
       }}>
@@ -424,7 +425,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
       </div>
 
       {/* buy button */}
-      <div>
+      <div className="deal-col-buy">
         <a
           href={item.deal.url}
           target="_blank"
@@ -456,7 +457,7 @@ function DealTableHeader() {
     fontFamily: "'IBM Plex Mono',monospace",
   };
   return (
-    <div style={{
+    <div className="deal-table-hd" style={{
       display: "grid",
       gridTemplateColumns: "40px 1fr 80px 100px 110px 96px",
       gap: 0,
@@ -468,9 +469,9 @@ function DealTableHeader() {
       <span style={CELL}>#</span>
       <span style={CELL}>게임</span>
       <span style={CELL}>할인</span>
-      <span style={CELL}>정가</span>
+      <span className="deal-col-reg" style={CELL}>정가</span>
       <span style={CELL}>현재가</span>
-      <span style={CELL}>구매</span>
+      <span className="deal-col-buy" style={CELL}>구매</span>
     </div>
   );
 }

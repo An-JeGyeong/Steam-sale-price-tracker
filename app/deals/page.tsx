@@ -41,7 +41,7 @@ function DealTableHeader() {
     fontFamily: "'IBM Plex Mono',monospace",
   };
   return (
-    <div style={{
+    <div className="deal-table-hd" style={{
       display: "grid",
       gridTemplateColumns: "40px 1fr 80px 100px 110px 96px",
       gap: 0,
@@ -53,9 +53,9 @@ function DealTableHeader() {
       <span style={CELL}>#</span>
       <span style={CELL}>게임</span>
       <span style={CELL}>할인</span>
-      <span style={CELL}>정가</span>
+      <span className="deal-col-reg" style={CELL}>정가</span>
       <span style={CELL}>현재가</span>
-      <span style={CELL}>구매</span>
+      <span className="deal-col-buy" style={CELL}>구매</span>
     </div>
   );
 }
@@ -74,6 +74,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
 
   return (
     <Link
+      className="deal-table-row"
       href={`/game/${item.id}?title=${encodeURIComponent(item.title)}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -141,7 +142,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
       </div>
 
       {/* 정가 */}
-      <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 500, color: "var(--c-text-dim)", textDecoration: "line-through" }}>
+      <div className="deal-col-reg" style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, fontWeight: 500, color: "var(--c-text-dim)", textDecoration: "line-through" }}>
         {won(reg)}
       </div>
 
@@ -151,7 +152,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
       </div>
 
       {/* 구매 */}
-      <div>
+      <div className="deal-col-buy">
         <a
           href={item.deal.url}
           target="_blank"
