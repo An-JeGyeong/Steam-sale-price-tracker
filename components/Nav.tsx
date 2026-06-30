@@ -166,10 +166,18 @@ const DROP_LINK_BASE = {
   textDecoration: "none", background: "transparent",
 } as const;
 
+const DRAWER_LINK = {
+  display: "flex", alignItems: "center",
+  padding: "13px 16px",
+  fontSize: 14, fontWeight: 600, color: "var(--c-text-body2)",
+  textDecoration: "none", borderTop: "1px solid var(--c-border-div)",
+} as const;
+
 export default function Nav() {
   const [profile, setProfile] = useState<SteamProfile | null>(null);
   const { theme, toggle } = useTheme();
   const [dropOpen, setDropOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function openDrop() {
@@ -239,11 +247,13 @@ export default function Nav() {
           스팀 최저가 트래커
         </Link>
 
-        {/* 검색 */}
-        <NavSearchBox />
+        {/* 검색 — 데스크탑 */}
+        <div className="nav-hide-mobile">
+          <NavSearchBox />
+        </div>
 
-        {/* 오른쪽 메뉴 */}
-        <div style={{
+        {/* 오른쪽 메뉴 — 데스크탑 */}
+        <div className="nav-desktop" style={{
           display: "flex", alignItems: "center", gap: 16, flexShrink: 0,
           marginLeft: "auto",
         }}>
@@ -432,7 +442,67 @@ export default function Nav() {
             </>
           )}
         </div>
+
+        {/* 햄버거 버튼 — 모바일 */}
+        <button
+          className="nav-hamburger"
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
+        >
+          {menuOpen ? "✕" : "☰"}
+        </button>
       </div>
+
+      {/* 모바일 드로어 */}
+      {menuOpen && (
+        <div className="nav-mobile-drawer">
+          {/* 검색 */}
+          <div className="nav-mobile-search">
+            <NavSearchBox />
+          </div>
+
+          {/* 링크 */}
+          <Link href="/" onClick={() => setMenuOpen(false)} style={DRAWER_LINK}>🔥 핫딜</Link>
+          <Link href="/sales" onClick={() => setMenuOpen(false)} style={DRAWER_LINK}>📅 세일 일정</Link>
+          <Link href="/deals" onClick={() => setMenuOpen(false)} style={DRAWER_LINK}>🏷️ 할인 전체</Link>
+
+          {profile ? (
+            <>
+              <Link href="/profile" onClick={() => setMenuOpen(false)} style={DRAWER_LINK}>👤 마이페이지</Link>
+              <Link href="/wishlist" onClick={() => setMenuOpen(false)} style={DRAWER_LINK}>🔖 찜목록</Link>
+              <Link href="/feedback" onClick={() => setMenuOpen(false)} style={DRAWER_LINK}>📋 피드백</Link>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 16px", borderTop: "1px solid var(--c-border-div)" }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--c-text-body2)" }}>
+                  {theme === "dark" ? "🌙 다크 모드" : "☀️ 라이트 모드"}
+                </span>
+                <button onClick={toggle} aria-label="테마 변경" style={{ position: "relative", width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", background: theme === "dark" ? "#2c3630" : "#5fd39a", transition: "background 0.2s", flexShrink: 0, padding: 0 }}>
+                  <span style={{ position: "absolute", top: "4px", left: theme === "dark" ? "4px" : "calc(100% - 20px)", width: 16, height: 16, borderRadius: "50%", background: "#fff", transition: "left 0.2s", display: "block" }} />
+                </button>
+              </div>
+              <form action="/api/auth/logout" method="POST" style={{ borderTop: "1px solid var(--c-border-div)" }}>
+                <button type="submit" style={{ display: "flex", alignItems: "center", width: "100%", padding: "13px 16px", fontSize: 14, fontWeight: 600, color: "#e8705f", background: "none", border: "none", cursor: "pointer", fontFamily: "'Noto Sans KR', system-ui, sans-serif" }}>
+                  ↪ 로그아웃
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <Link href="/feedback" onClick={() => setMenuOpen(false)} style={DRAWER_LINK}>📋 피드백</Link>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 16px", borderTop: "1px solid var(--c-border-div)" }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--c-text-body2)" }}>
+                  {theme === "dark" ? "🌙 다크 모드" : "☀️ 라이트 모드"}
+                </span>
+                <button onClick={toggle} aria-label="테마 변경" style={{ position: "relative", width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer", background: theme === "dark" ? "#2c3630" : "#5fd39a", transition: "background 0.2s", flexShrink: 0, padding: 0 }}>
+                  <span style={{ position: "absolute", top: "4px", left: theme === "dark" ? "4px" : "calc(100% - 20px)", width: 16, height: 16, borderRadius: "50%", background: "#fff", transition: "left 0.2s", display: "block" }} />
+                </button>
+              </div>
+              <a href="/api/auth/steam" style={{ display: "flex", alignItems: "center", gap: 7, padding: "13px 16px", fontSize: 14, fontWeight: 700, color: "#c7d5e0", textDecoration: "none", borderTop: "1px solid var(--c-border-div)" }}>
+                <SteamIcon />Steam 로그인
+              </a>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 }

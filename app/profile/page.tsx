@@ -20,11 +20,11 @@ function SteamIcon() {
   );
 }
 
-function PillToggle({ checked, onToggle }: { checked: boolean; onToggle: () => void }) {
+function PillToggle({ checked, onToggle, ariaLabel = "토글" }: { checked: boolean; onToggle: () => void; ariaLabel?: string }) {
   return (
     <button
       onClick={onToggle}
-      aria-label="테마 변경"
+      aria-label={ariaLabel}
       style={{
         position: "relative",
         width: 44,
@@ -99,14 +99,24 @@ export default function ProfilePage() {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { theme, toggle } = useTheme();
 
+  const [emailNotif, setEmailNotif] = useState(false);
+  const [notifEmail, setNotifEmail] = useState("");
+  const [notifSaved, setNotifSaved] = useState(false);
+  const notifSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     const stored = localStorage.getItem("custom-avatar") ?? "";
     setCustomAvatar(stored);
     setAvatarInput(stored);
+    setEmailNotif(localStorage.getItem("email-notif") === "true");
+    setNotifEmail(localStorage.getItem("notif-email") ?? "");
   }, []);
 
   useEffect(() => {
-    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (notifSaveTimer.current) clearTimeout(notifSaveTimer.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -125,6 +135,14 @@ export default function ProfilePage() {
     setSavedMsg(true);
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => setSavedMsg(false), 2000);
+  }
+
+  function saveNotifSettings() {
+    localStorage.setItem("email-notif", String(emailNotif));
+    localStorage.setItem("notif-email", notifEmail);
+    setNotifSaved(true);
+    if (notifSaveTimer.current) clearTimeout(notifSaveTimer.current);
+    notifSaveTimer.current = setTimeout(() => setNotifSaved(false), 2000);
   }
 
   function resetAvatar() {
@@ -184,10 +202,10 @@ export default function ProfilePage() {
           마이페이지
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 24, alignItems: "start" }}>
+        <div className="resp-col" style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 24, alignItems: "start" }}>
 
           {/* 왼쪽 카드 */}
-          <div style={{
+          <div className="resp-sticky-off" style={{
             background: "var(--c-bg-grad)",
             border: "1px solid var(--c-border-alt)",
             borderRadius: 16,
@@ -338,11 +356,57 @@ export default function ProfilePage() {
                     {theme === "dark" ? "어두운 배경 테마를 사용 중입니다" : "밝은 배경 테마를 사용 중입니다"}
                   </div>
                 </div>
-                <PillToggle checked={theme === "dark"} onToggle={toggle} />
+                <PillToggle checked={theme === "dark"} onToggle={toggle} ariaLabel="테마 변경" />
               </div>
             </div>
 
-            {/* 3. 계정 정보 */}
+            {/* 3. 이메일 알림 설정 */}
+            <div style={PANEL_STYLE}>
+              <div style={PANEL_TITLE}>이메일 알림 설정</div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: emailNotif ? 18 : 0 }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--c-text-alt2)" }}>
+                    {emailNotif ? "🔔 알림 켜짐" : "🔕 알림 꺼짐"}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--c-text-muted)", marginTop: 4 }}>
+                    찜한 게임 할인 시 이메일로 알림을 받습니다
+                  </div>
+                </div>
+                <PillToggle checked={emailNotif} onToggle={() => setEmailNotif((v) => !v)} ariaLabel="이메일 알림 토글" />
+              </div>
+              {emailNotif && (
+                <>
+                  <label style={LABEL_STYLE}>알림 받을 이메일 주소</label>
+                  <input
+                    type="email"
+                    value={notifEmail}
+                    onChange={(e) => setNotifEmail(e.target.value)}
+                    placeholder="example@email.com"
+                    style={INPUT_STYLE}
+                  />
+                  <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 12 }}>
+                    <button
+                      onClick={saveNotifSettings}
+                      disabled={!notifEmail.includes("@")}
+                      style={{
+                        fontSize: 13, fontWeight: 700, color: "#06120b",
+                        background: notifEmail.includes("@") ? "#5fd39a" : "var(--c-border)",
+                        border: "none", borderRadius: 9,
+                        padding: "8px 20px", cursor: notifEmail.includes("@") ? "pointer" : "not-allowed",
+                        fontFamily: "'Noto Sans KR', system-ui, sans-serif",
+                      }}
+                    >
+                      저장
+                    </button>
+                    {notifSaved && (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#5fd39a" }}>✓ 저장됨</span>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* 4. 계정 정보 */}
             <div style={PANEL_STYLE}>
               <div style={PANEL_TITLE}>계정 정보</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

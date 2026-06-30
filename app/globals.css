@@ -109,6 +109,50 @@ body {
   to   { transform: rotate(360deg); }
 }
 
+/* ── 반응형 ── */
+.nav-hide-mobile { flex: 1; }
+.nav-hamburger   { display: none; }
+.nav-mobile-drawer { display: none; }
+
+@media (max-width: 767px) {
+  /* Nav */
+  .nav-hide-mobile { display: none !important; }
+  .nav-desktop     { display: none !important; }
+  .nav-hamburger {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    color: var(--c-text-alt);
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: system-ui, sans-serif;
+    line-height: 1;
+  }
+  .nav-mobile-drawer {
+    display: flex !important;
+    flex-direction: column;
+    border-top: 1px solid var(--c-border-alt);
+    padding-bottom: 6px;
+  }
+  .nav-mobile-drawer .nav-mobile-search { padding: 10px 16px; display: flex; }
+
+  /* 레이아웃 그리드 */
+  .resp-col { grid-template-columns: 1fr !important; }
+  .resp-sticky-off { position: static !important; }
+  .resp-pad { padding: 20px 14px 48px !important; }
+  .resp-gap-sm { gap: 16px !important; }
+
+  /* 홈 페이지 — 카운트다운 2열 유지 */
+  .resp-col-2 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
 /* Nav CSS 클래스 (인라인 스타일 대신 사용) */
 nav.site-nav {
   background: rgba(13, 15, 14, .86);

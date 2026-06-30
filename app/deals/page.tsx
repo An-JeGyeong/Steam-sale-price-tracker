@@ -304,10 +304,10 @@ export default function DealsPage() {
     <div>
       <Nav />
       <div style={{ maxWidth: 1180, margin: "0 auto", padding: "32px 22px 60px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 24, alignItems: "start" }}>
+        <div className="resp-col" style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 24, alignItems: "start" }}>
 
           {/* ── 사이드바 ── */}
-          <div style={{ position: "sticky", top: 80 }}>
+          <div className="resp-sticky-off" style={{ position: "sticky", top: 80 }}>
             {/* 검색 */}
             <input
               type="text"

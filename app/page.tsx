@@ -227,7 +227,7 @@ function HeroSearch() {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim() && setOpen(true)}
           onKeyDown={(e) => { if (e.key === "Enter" && results[0]) pick(results[0]); if (e.key === "Escape") setOpen(false); }}
-          placeholder="게임 이름을 검색하세요 (한글/영어)"
+          placeholder="검색"
           style={{
             flex: 1, background: "none", border: "none", outline: "none",
             color: "var(--c-text-body2)", fontSize: 15, fontFamily: "'Noto Sans KR',system-ui,sans-serif",
@@ -829,7 +829,7 @@ export default function HomePage() {
         </div>
 
         {/* split */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 22, alignItems: "start", marginTop: 8 }}>
+        <div className="resp-col" style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 22, alignItems: "start", marginTop: 8 }}>
 
           {/* 곧 끝나는 세일 */}
           <div>
@@ -841,7 +841,7 @@ export default function HomePage() {
                 곧 끝나는 세일
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
+            <div className="resp-col-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
               {(endingLoading || loading)
                 ? Array.from({ length: 4 }, (_, i) => <SkeletonEndingCard key={i} />)
                 : displayEndingDeals.length === 0
