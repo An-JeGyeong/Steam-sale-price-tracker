@@ -118,7 +118,7 @@ function DealsRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: 
           )}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--c-text-alt2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div title={item.title} style={{ fontSize: 13.5, fontWeight: 700, color: "var(--c-text-alt2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {item.title}
           </div>
           {(isDlcItem || isLow) && (
@@ -248,6 +248,7 @@ export default function DealsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("cut");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [minCut, setMinCut] = useState(0);
   const [page, setPage] = useState(0);
 
   const resetPage = useCallback(() => setPage(0), []);
@@ -277,6 +278,7 @@ export default function DealsPage() {
       if (searchTerm && !item.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
       if (typeFilter === "game") return !isDlc(item);
       if (typeFilter === "dlc") return isDlc(item);
+      if (minCut > 0 && item.deal.cut < minCut) return false;
       return true;
     })
     .sort((a, b) => {
@@ -284,7 +286,7 @@ export default function DealsPage() {
       if (sortKey === "price-asc") return a.deal.price.amount - b.deal.price.amount;
       if (sortKey === "regular-desc") return b.deal.regular.amount - a.deal.regular.amount;
       return 0;
-    }), [rawDeals, searchTerm, typeFilter, sortKey]);
+    }), [rawDeals, searchTerm, typeFilter, sortKey, minCut]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(page, totalPages - 1);
@@ -345,6 +347,37 @@ export default function DealsPage() {
                 {opt.label}
               </SidebarBtn>
             ))}
+
+            {/* 할인율 */}
+            <div style={SIDEBAR_SECTION_TITLE}>최소 할인율</div>
+            <div style={{ padding: "4px 2px 8px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span style={{ fontSize: 12, color: "var(--c-text-muted)", fontFamily: "'IBM Plex Mono',monospace" }}>
+                  {minCut === 0 ? "전체" : `${minCut}% 이상`}
+                </span>
+                {minCut > 0 && (
+                  <button
+                    onClick={() => { setMinCut(0); resetPage(); }}
+                    style={{ fontSize: 11, color: "var(--c-text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                  >
+                    초기화
+                  </button>
+                )}
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={90}
+                step={10}
+                value={minCut}
+                onChange={(e) => { setMinCut(Number(e.target.value)); resetPage(); }}
+                style={{ width: "100%", accentColor: "#5fd39a", cursor: "pointer" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}>
+                <span style={{ fontSize: 10, color: "var(--c-text-dimmer)", fontFamily: "'IBM Plex Mono',monospace" }}>0%</span>
+                <span style={{ fontSize: 10, color: "var(--c-text-dimmer)", fontFamily: "'IBM Plex Mono',monospace" }}>90%</span>
+              </div>
+            </div>
 
             {/* 결과 수 */}
             {!loading && (

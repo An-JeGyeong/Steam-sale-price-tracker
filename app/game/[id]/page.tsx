@@ -52,6 +52,53 @@ const REVIEW_META: Record<number, { label: string; color: string; bg: string; bo
 
 function won(n: number) { return "₩" + n.toLocaleString("ko-KR"); }
 
+function ShareButton({ title }: { title: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleShare() {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: `${title} — 스팀 최저가 트래커`, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }).catch(() => {});
+    }
+  }
+
+  return (
+    <button
+      onClick={handleShare}
+      style={{
+        marginTop: 9, width: "100%", height: 42,
+        border: "1px solid #2a3533", borderRadius: 11, background: "#141817",
+        color: copied ? "#5fd39a" : "#a3a8a4", fontSize: 14, fontWeight: 600, cursor: "pointer",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        fontFamily: "'Noto Sans KR',system-ui,sans-serif",
+        transition: "color .2s",
+      }}
+    >
+      {copied ? (
+        <>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          링크 복사됨
+        </>
+      ) : (
+        <>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          공유하기
+        </>
+      )}
+    </button>
+  );
+}
+
 function safeUrl(url: string): string | undefined {
   try {
     const { protocol } = new URL(url);
@@ -478,6 +525,7 @@ export default function GameDetailPage() {
                   </svg>
                   가격 알림 설정
                 </button>
+                <ShareButton title={title} />
 
                 {/* Steam 리뷰 */}
                 {reviewMeta && reviews && (

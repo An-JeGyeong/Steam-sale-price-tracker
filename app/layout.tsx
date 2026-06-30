@@ -5,6 +5,7 @@ import { ThemeProvider } from "./theme-provider";
 export const metadata: Metadata = {
   title: "스팀 최저가 트래커",
   description: "지금 이 할인이 역대 최저가인지 바로 확인하세요.",
+  manifest: "/manifest.json",
   icons: {
     icon: "/favicon.png",
     apple: "/favicon.png",

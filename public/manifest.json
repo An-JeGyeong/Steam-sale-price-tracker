@@ -1,0 +1,13 @@
+{
+  "name": "스팀 최저가 트래커",
+  "short_name": "스팀 트래커",
+  "description": "지금 이 할인이 역대 최저가인지 바로 확인하세요.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e100f",
+  "theme_color": "#5fd39a",
+  "lang": "ko",
+  "icons": [
+    { "src": "/favicon.png", "sizes": "any", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

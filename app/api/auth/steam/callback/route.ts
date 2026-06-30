@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySteamOpenId } from "@/lib/steam";
+import { signValue } from "@/lib/session";
 
 async function fetchSteamProfile(steamId: string): Promise<{ name: string; avatar: string } | null> {
   try {
@@ -21,6 +22,13 @@ async function fetchSteamProfile(steamId: string): Promise<{ name: string; avata
 }
 
 export async function GET(req: NextRequest) {
+  // CSRF: nonce 검증
+  const nonce = req.nextUrl.searchParams.get("nonce");
+  const cookieNonce = req.cookies.get("openid_nonce")?.value;
+  if (!nonce || !cookieNonce || nonce !== cookieNonce) {
+    return NextResponse.redirect(new URL("/?error=auth_csrf", req.url));
+  }
+
   const params = req.nextUrl.searchParams;
 
   let steamId: string | null = null;
@@ -44,7 +52,11 @@ export async function GET(req: NextRequest) {
     path: "/",
   };
 
-  res.cookies.set("steam_id", steamId, cookieOpts);
+  // nonce 쿠키 즉시 삭제
+  res.cookies.set("openid_nonce", "", { maxAge: 0, path: "/" });
+
+  // HMAC 서명된 값으로 저장
+  res.cookies.set("steam_id", signValue(steamId), cookieOpts);
 
   const profile = await fetchSteamProfile(steamId);
   if (profile) {

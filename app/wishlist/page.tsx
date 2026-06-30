@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Nav from "@/components/Nav";
+import { getLocalWishlist, removeFromLocalWishlist, type LocalWishItem } from "@/lib/localWishlist";
 
 interface WishGame {
   appId: number;
@@ -58,6 +59,9 @@ export default function WishlistPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "sale" | "low">("all");
+  const [localList, setLocalList] = useState<LocalWishItem[]>([]);
+
+  useEffect(() => { setLocalList(getLocalWishlist()); }, []);
 
   useEffect(() => {
     fetch("/api/wishlist")
@@ -75,20 +79,21 @@ export default function WishlistPage() {
     return (
       <div>
         <Nav />
-        <div style={{ maxWidth: 640, margin: "100px auto", padding: "0 22px", textAlign: "center" }}>
+        <div style={{ maxWidth: 640, margin: "60px auto", padding: "0 22px" }}>
+          {/* 로그인 카드 */}
           <div style={{
             background: "linear-gradient(180deg,#141716,#101212)",
-            border: "1px solid #272d2d", borderRadius: 18, padding: "48px 40px",
+            border: "1px solid #272d2d", borderRadius: 18, padding: "40px 40px 36px",
+            textAlign: "center",
           }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🎮</div>
             <h1 style={{ fontSize: 24, fontWeight: 800, color: "#eef6f0", marginBottom: 12 }}>
               Steam으로 로그인하세요
             </h1>
-            <p style={{ fontSize: 14, color: "#8b8f8b", lineHeight: 1.7, marginBottom: 32 }}>
+            <p style={{ fontSize: 14, color: "#8b8f8b", lineHeight: 1.7, marginBottom: 28 }}>
               Steam 계정으로 로그인하면<br />
               찜목록의 게임 할인 정보를 한 눈에 확인할 수 있습니다
             </p>
-
             <a
               href="/api/auth/steam"
               style={{
@@ -102,12 +107,53 @@ export default function WishlistPage() {
               <SteamIcon />
               Steam으로 로그인
             </a>
-
-            <div style={{ marginTop: 24, fontSize: 12, color: "#5a615d", lineHeight: 1.8 }}>
+            <div style={{ marginTop: 20, fontSize: 12, color: "#5a615d", lineHeight: 1.8 }}>
               ⚠️ Steam 개인정보 설정에서<br />
               <strong style={{ color: "#8b8f8b" }}>위시리스트를 '공개'</strong>로 설정해야 가져올 수 있습니다
             </div>
           </div>
+
+          {/* 로컬 찜 목록 */}
+          {localList.length > 0 && (
+            <div style={{ marginTop: 28 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#eef6f0", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#e8705f" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+                저장한 게임 ({localList.length})
+              </div>
+              <div style={{ background: "linear-gradient(180deg,#141716,#101212)", border: "1px solid #272d2d", borderRadius: 14, overflow: "hidden" }}>
+                {localList.map((g, i) => (
+                  <div key={g.id} style={{
+                    display: "flex", alignItems: "center", gap: 14,
+                    padding: "13px 16px",
+                    borderBottom: i < localList.length - 1 ? "1px solid #1e2222" : "none",
+                  }}>
+                    {g.boxart ? (
+                      <img src={g.boxart} alt="" style={{ width: 60, height: 42, borderRadius: 7, objectFit: "cover", flexShrink: 0 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    ) : (
+                      <div style={{ width: 60, height: 42, borderRadius: 7, background: "#1a1d1d", flexShrink: 0 }} />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Link href={`/game/${g.id}?title=${encodeURIComponent(g.title)}`} style={{ fontSize: 13.5, fontWeight: 700, color: "#e6ebe8", textDecoration: "none", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {g.title}
+                      </Link>
+                      <div style={{ fontSize: 12, color: "#5a615d", marginTop: 2, fontFamily: "'IBM Plex Mono',monospace" }}>
+                        -{g.cut}% · ₩{g.price.toLocaleString("ko-KR")}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { removeFromLocalWishlist(g.id); setLocalList(getLocalWishlist()); }}
+                      title="찜 해제"
+                      style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "#4a504d", padding: 4 }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

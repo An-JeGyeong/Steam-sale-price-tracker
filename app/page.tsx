@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
 import type { GameSearchResult, DealItem } from "@/lib/itad";
 import { steamAppIdFromUrl, steamHeaderUrl, steamCapsuleUrl } from "@/lib/itad";
+import { addToLocalWishlist, removeFromLocalWishlist, isInLocalWishlist } from "@/lib/localWishlist";
 
 interface WishSaleGame {
   appId: number; title: string; capsule?: string; itadId: string;
@@ -311,6 +312,7 @@ function HeroSearch() {
 /* ── deal table row ── */
 function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: boolean }) {
   const [hovered, setHovered] = useState(false);
+  const [wished, setWished] = useState(() => isInLocalWishlist(item.id));
   const appId = steamAppIdFromUrl(item.deal.url) ?? steamAppIdFromUrl(item.assets?.boxart ?? "");
   const imgSrc = item.assets?.boxart ?? (appId ? steamHeaderUrl(appId) : null);
   const reg = item.deal.regular.amount;
@@ -319,6 +321,21 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
   const isLow = item.deal.flag === "H";
   const isDlcItem = isDlc(item);
   const col = discountColor(cut);
+
+  function toggleWish(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (wished) {
+      removeFromLocalWishlist(item.id);
+    } else {
+      addToLocalWishlist({
+        id: item.id, title: item.title,
+        boxart: imgSrc ?? undefined,
+        cut, price: now, url: item.deal.url, savedAt: Date.now(),
+      });
+    }
+    setWished(!wished);
+  }
 
   return (
     <Link
@@ -347,7 +364,7 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
       </span>
 
       {/* thumbnail + title */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, position: "relative" }}>
         <div style={{ width: 56, height: 40, borderRadius: 7, overflow: "hidden", background: CAP_SM, flexShrink: 0 }}>
           {imgSrc && (
             <img
@@ -365,12 +382,33 @@ function DealRow({ item, rank, isOdd }: { item: DealItem; rank: number; isOdd: b
             />
           )}
         </div>
-        <div style={{ minWidth: 0 }}>
-          <div style={{
-            fontSize: 13.5, fontWeight: 700, color: "var(--c-text-alt2)",
-            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-          }}>
-            {item.title}
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div
+              title={item.title}
+              style={{
+                fontSize: 13.5, fontWeight: 700, color: "var(--c-text-alt2)",
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                flex: 1, minWidth: 0,
+              }}
+            >
+              {item.title}
+            </div>
+            <button
+              onClick={toggleWish}
+              title={wished ? "찜 해제" : "찜하기"}
+              style={{
+                flexShrink: 0, width: 22, height: 22, borderRadius: 5,
+                background: "none", border: "none", cursor: "pointer", padding: 0,
+                color: wished ? "#e8705f" : "var(--c-text-dimmer)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "color .15s",
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill={wished ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </button>
           </div>
           {(isDlcItem || isLow) && (
             <div style={{ display: "flex", gap: 4, marginTop: 3, flexWrap: "wrap" }}>
@@ -637,13 +675,13 @@ export default function HomePage() {
                   borderRadius: 12, padding: "10px 20px",
                 }}>
                   <span style={{ fontSize: 18, lineHeight: 1 }}>{sale.icon}</span>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: sale.color, letterSpacing: -0.2 }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: sale.color, letterSpacing: -0.2, whiteSpace: "nowrap" }}>
                     {sale.label}
                   </span>
                   {saleUntil && (
                     <>
                       <span style={{ width: 1, height: 14, background: sale.border, flexShrink: 0 }} />
-                      <span style={{ fontSize: 13, fontWeight: 500, color: sale.color, opacity: 0.75 }}>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: sale.color, opacity: 0.75, whiteSpace: "nowrap" }}>
                         {saleUntil}
                       </span>
                     </>

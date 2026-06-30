@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchSteamWishlist } from "@/lib/steam";
 import { lookupByAppId, getPrices } from "@/lib/itad";
+import { verifyValue } from "@/lib/session";
 
 export async function GET(req: NextRequest) {
-  const steamId = req.cookies.get("steam_id")?.value;
-  // Validate that steamId is a 17-digit numeric Steam ID (Steam 64-bit format)
+  const rawId = req.cookies.get("steam_id")?.value;
+  const steamId = rawId ? verifyValue(rawId) : null;
   if (!steamId || !/^\d{17}$/.test(steamId)) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
