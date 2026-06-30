@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState, useCallback, type CSSProperties } from "react";
+import { useEffect, useState, useCallback, useMemo, type CSSProperties } from "react";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import type { DealItem } from "@/lib/itad";
@@ -254,8 +254,8 @@ export default function DealsPage() {
   useEffect(() => {
     fetch("/api/deals?limit=100&sort=-cut")
       .then(async (r) => {
-        const data: unknown = await r.json();
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data: unknown = await r.json();
         const asRecord = data as Record<string, unknown>;
         if (asRecord?.error) throw new Error(String(asRecord.error));
         return data as DealItem[];
@@ -271,7 +271,7 @@ export default function DealsPage() {
   }, []);
 
   /* 클라이언트 필터 + 정렬 */
-  const filtered = rawDeals
+  const filtered = useMemo(() => rawDeals
     .filter((item) => {
       if (searchTerm && !item.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
       if (typeFilter === "game") return !isDlc(item);
@@ -283,7 +283,7 @@ export default function DealsPage() {
       if (sortKey === "price-asc") return a.deal.price.amount - b.deal.price.amount;
       if (sortKey === "regular-desc") return b.deal.regular.amount - a.deal.regular.amount;
       return 0;
-    });
+    }), [rawDeals, searchTerm, typeFilter, sortKey]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const safePage = Math.min(page, totalPages - 1);

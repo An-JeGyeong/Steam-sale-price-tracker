@@ -136,11 +136,13 @@ export default function FeedbackPage() {
   }
 
   function handleUpvote(id: string) {
-    const updated = posts.map((p) =>
-      p.id === id ? { ...p, upvotes: p.upvotes + 1 } : p
-    );
-    setPosts(updated);
-    savePosts(updated);
+    setPosts((prev) => {
+      const updated = prev.map((p) =>
+        p.id === id ? { ...p, upvotes: p.upvotes + 1 } : p
+      );
+      savePosts(updated);
+      return updated;
+    });
   }
 
   const INPUT_STYLE: React.CSSProperties = {

@@ -20,11 +20,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const [result] = await getPrices([id], country);
-    if (!result || result.deals.length === 0) {
+    if (!result) {
       return NextResponse.json({ error: "현재 판매 중인 상점 정보를 찾을 수 없습니다." }, { status: 404 });
     }
 
-    const bestDeal = result.deals.reduce((a, b) => (a.price.amount <= b.price.amount ? a : b));
+    const steamDeals = result.deals.filter((d) => d.shop.id === 61);
+    if (steamDeals.length === 0) {
+      return NextResponse.json({ error: "Steam에서 현재 판매 중인 상점 정보를 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    const bestDeal = steamDeals.reduce((a, b) => (a.price.amount <= b.price.amount ? a : b));
     const historyLow = result.historyLow?.all ?? null;
     const isAllTimeLow = historyLow != null && bestDeal.price.amount <= historyLow.amount;
 

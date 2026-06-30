@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useState, useRef, useCallback, type CSSProperties } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
@@ -475,9 +475,54 @@ function DealTableHeader() {
   );
 }
 
+/* ── ending deal card (owns its own 1-second tick so parent never re-renders) ── */
+function EndingCard({ e }: { e: DealItem }) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const iv = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(iv);
+  }, []);
+  const r = remainSec(e.deal.expiry);
+  const eid = steamAppIdFromUrl(e.deal.url);
+  const esrc = e.assets?.boxart ?? (eid ? steamHeaderUrl(eid) : null);
+  return (
+    <Link href={`/game/${e.id}?title=${encodeURIComponent(e.title)}`} style={{
+      background: "var(--c-bg-grad)",
+      border: "1px solid var(--c-border)", borderRadius: 13,
+      padding: 13, display: "flex", gap: 12, alignItems: "center",
+      textDecoration: "none",
+    }}>
+      <div style={{ width: 54, height: 54, borderRadius: 9, overflow: "hidden", background: CAP_SM, flexShrink: 0, border: "1px solid var(--c-border)" }}>
+        {esrc && (
+          <img
+            src={esrc}
+            alt=""
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            onError={(ev) => {
+              const img = ev.target as HTMLImageElement;
+              const fb = eid ? steamHeaderUrl(eid) : null;
+              if (fb && img.src !== fb) { img.src = fb; }
+              else { img.style.display = "none"; }
+            }}
+          />
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--c-text-alt)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: cdColor(r), fontFamily: "'IBM Plex Mono',monospace", marginTop: 5, letterSpacing: 0.3 }}>
+          ⏳ {fmtCd(r)} 남음
+        </div>
+      </div>
+      <div style={{ textAlign: "right", flexShrink: 0 }}>
+        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 600, color: "#5fd39a" }}>-{e.deal.cut}%</div>
+        <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700, color: "var(--c-text-alt)", marginTop: 3 }}>{won(e.deal.price.amount)}</div>
+      </div>
+    </Link>
+  );
+}
+
 /* ── main page ── */
 export default function HomePage() {
-  const [tick, setTick] = useState(0);
   const [rawDeals, setRawDeals] = useState<DealItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -485,9 +530,10 @@ export default function HomePage() {
   const [endingLoading, setEndingLoading] = useState(true);
   const [wishSale, setWishSale] = useState<WishSaleGame[]>([]);
   const [wishLoading, setWishLoading] = useState(true);
+  const [clockMinute, setClockMinute] = useState(() => Date.now());
 
   useEffect(() => {
-    const iv = setInterval(() => setTick((t) => t + 1), 1000);
+    const iv = setInterval(() => setClockMinute(Date.now()), 60_000);
     return () => clearInterval(iv);
   }, []);
 
@@ -557,13 +603,18 @@ export default function HomePage() {
   }, []);
 
   // expiry-sort API가 만료된 데이터만 반환할 때 rawDeals에서 fallback
-  const now = Date.now();
-  const displayEndingDeals = endingDeals.length > 0
-    ? endingDeals
-    : rawDeals
-        .filter((d) => d.deal.expiry && new Date(d.deal.expiry).getTime() > now)
-        .sort((a, b) => new Date(a.deal.expiry!).getTime() - new Date(b.deal.expiry!).getTime())
-        .slice(0, 4);
+  const displayEndingDeals = useMemo(() => {
+    if (endingDeals.length > 0) return endingDeals;
+    return rawDeals
+      .filter((d) => d.deal.expiry && new Date(d.deal.expiry).getTime() > clockMinute)
+      .sort((a, b) => new Date(a.deal.expiry!).getTime() - new Date(b.deal.expiry!).getTime())
+      .slice(0, 4);
+  }, [endingDeals, rawDeals, clockMinute]);
+
+  const sorted = useMemo(
+    () => [...rawDeals.filter((d) => !isDlc(d)), ...rawDeals.filter((d) => isDlc(d))],
+    [rawDeals]
+  );
 
   return (
     <div>
@@ -759,15 +810,9 @@ export default function HomePage() {
                     현재 Steam 할인 중인 게임이 없습니다
                   </div>
                 )
-                : (() => {
-                  const sorted = [
-                    ...rawDeals.filter((d) => !isDlc(d)),
-                    ...rawDeals.filter((d) => isDlc(d)),
-                  ];
-                  return sorted.map((item, i) => (
-                    <DealRow key={item.id} item={item} rank={i + 1} isOdd={i % 2 !== 0} />
-                  ));
-                })()
+                : sorted.map((item, i) => (
+                  <DealRow key={item.id} item={item} rank={i + 1} isOdd={i % 2 !== 0} />
+                ))
           }
           <Link href="/deals" style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
@@ -805,48 +850,7 @@ export default function HomePage() {
                       현재 마감 임박 세일이 없습니다
                     </div>
                   )
-                  : displayEndingDeals.map((e) => {
-                    const r = remainSec(e.deal.expiry);
-                    void tick;
-                    return (
-                      <Link key={e.id} href={`/game/${e.id}?title=${encodeURIComponent(e.title)}`} style={{
-                        background: "var(--c-bg-grad)",
-                        border: "1px solid var(--c-border)", borderRadius: 13,
-                        padding: 13, display: "flex", gap: 12, alignItems: "center",
-                        textDecoration: "none",
-                      }}>
-                        <div style={{ width: 54, height: 54, borderRadius: 9, overflow: "hidden", background: CAP_SM, flexShrink: 0, border: "1px solid var(--c-border)" }}>
-                          {(() => {
-                            const eid = steamAppIdFromUrl(e.deal.url);
-                            const esrc = e.assets?.boxart ?? (eid ? steamHeaderUrl(eid) : null);
-                            return esrc ? (
-                              <img
-                                src={esrc}
-                                alt=""
-                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                onError={(ev) => {
-                                  const img = ev.target as HTMLImageElement;
-                                  const fb = eid ? steamHeaderUrl(eid) : null;
-                                  if (fb && img.src !== fb) { img.src = fb; }
-                                  else { img.style.display = "none"; }
-                                }}
-                              />
-                            ) : null;
-                          })()}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--c-text-alt)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: cdColor(r), fontFamily: "'IBM Plex Mono',monospace", marginTop: 5, letterSpacing: 0.3 }}>
-                            ⏳ {fmtCd(r)} 남음
-                          </div>
-                        </div>
-                        <div style={{ textAlign: "right", flexShrink: 0 }}>
-                          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight: 600, color: "#5fd39a" }}>-{e.deal.cut}%</div>
-                          <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 15, fontWeight: 700, color: "var(--c-text-alt)", marginTop: 3 }}>{won(e.deal.price.amount)}</div>
-                        </div>
-                      </Link>
-                    );
-                  })
+                  : displayEndingDeals.map((e) => <EndingCard key={e.id} e={e} />)
               }
             </div>
           </div>

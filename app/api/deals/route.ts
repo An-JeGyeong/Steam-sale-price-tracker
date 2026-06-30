@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDeals } from "@/lib/itad";
 
+export const revalidate = 1800;
+
 export async function GET(req: NextRequest) {
   const limitRaw = parseInt(req.nextUrl.searchParams.get("limit") ?? "8", 10);
   const limit = Number.isNaN(limitRaw) ? 8 : limitRaw;

@@ -181,6 +181,10 @@ export default function Nav() {
   }
 
   useEffect(() => {
+    return () => { if (closeTimer.current) clearTimeout(closeTimer.current); };
+  }, []);
+
+  useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((d: { loggedIn: boolean; steamName?: string; steamAvatar?: string }) => {
