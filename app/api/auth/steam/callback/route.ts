@@ -56,7 +56,13 @@ export async function GET(req: NextRequest) {
   res.cookies.set("openid_nonce", "", { maxAge: 0, path: "/" });
 
   // HMAC 서명된 값으로 저장
-  res.cookies.set("steam_id", signValue(steamId), cookieOpts);
+  let signedId: string;
+  try {
+    signedId = signValue(steamId);
+  } catch {
+    return NextResponse.redirect(new URL("/?error=session_config", req.url));
+  }
+  res.cookies.set("steam_id", signedId, cookieOpts);
 
   const profile = await fetchSteamProfile(steamId);
   if (profile) {

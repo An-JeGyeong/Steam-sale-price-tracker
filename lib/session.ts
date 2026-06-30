@@ -2,8 +2,12 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 function secret(): string {
   const s = process.env.SESSION_SECRET;
-  if (!s) throw new Error("SESSION_SECRET 환경변수가 없습니다.");
-  return s;
+  if (s) return s;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET 환경변수가 없습니다.");
+  }
+  // 개발 환경 전용 폴백 — 프로덕션에서는 절대 사용 금지
+  return "dev-only-fallback-not-for-production";
 }
 
 export function signValue(value: string): string {
